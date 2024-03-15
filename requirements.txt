@@ -5,3 +5,4 @@ seaborn
 ipywidgets
 scipy
 scikit-image
+scikit-learn
