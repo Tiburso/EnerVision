@@ -6,3 +6,6 @@ ipywidgets
 scipy
 scikit-image
 scikit-learn
+torch
+torchvision
+pytorch-lightning[extra]
