@@ -10,3 +10,4 @@ torch
 torchvision
 pytorch-lightning[extra]
 python-dotenv
+Ultralytics 
