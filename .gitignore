@@ -162,3 +162,5 @@ dataset/imgs/*
 germany_dataset/
 readings.txt
 NL-Solar-Panel-Seg-1/
+
+lightning_logs/

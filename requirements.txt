@@ -12,3 +12,5 @@ pytorch-lightning[extra]
 python-dotenv
 Ultralytics 
 roboflow
+shapely
+rasterio
