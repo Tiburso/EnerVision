@@ -14,3 +14,4 @@ Ultralytics
 roboflow
 shapely
 rasterio
+transformers

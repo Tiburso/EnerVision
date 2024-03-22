@@ -3,7 +3,8 @@ import torchvision.models as models
 import pytorch_lightning as pl
 from torch import nn, optim
 
-class ResNetModel(BaseModel):
+
+class ResNetModel(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         # Load a pre-trained ResNet

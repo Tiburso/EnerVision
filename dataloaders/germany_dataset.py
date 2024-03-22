@@ -48,6 +48,9 @@ class GermanyDataset(Dataset):
         image, polygons = load_image_and_labels(self.dataset[idx])
         mask = polygons_to_mask(polygons)
 
+        # Normalize image
+        image = image / 255.0
+
         return torch.tensor(image, dtype=torch.float32).view(3, 832, 832), torch.tensor(
             mask, dtype=torch.float32
         ).view(1, 832, 832)
