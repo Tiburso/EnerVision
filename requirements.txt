@@ -12,3 +12,4 @@ pytorch-lightning[extra]
 python-dotenv
 Ultralytics 
 roboflow
+pycocotools
