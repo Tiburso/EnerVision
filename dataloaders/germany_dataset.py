@@ -5,6 +5,8 @@ import pandas as pd
 from shapely.geometry import Polygon
 from torch.utils.data import Dataset
 
+from image_helpers import polygons_to_mask
+
 
 def load_image_and_labels(file):
     labels = pd.read_csv("germany_dataset/labels/" + file, sep=" ", header=None)
