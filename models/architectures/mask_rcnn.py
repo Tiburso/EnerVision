@@ -1,5 +1,8 @@
 import torch
-from torchvision.models.detection import maskrcnn_resnet50_fpn
+from torchvision.models.detection import (
+    maskrcnn_resnet50_fpn_v2,
+    MaskRCNN_ResNet50_FPN_V2_Weights,
+)
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torch import nn
@@ -9,7 +12,9 @@ class MaskRCNNModel(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         # Load a pre-trained Mask RCNN model
-        model = maskrcnn_resnet50_fpn(pretrained=True)
+        model = maskrcnn_resnet50_fpn_v2(
+            weights=MaskRCNN_ResNet50_FPN_V2_Weights.DEFAULT
+        )
 
         # Modify the final layer to match the number of classes
         in_features = model.roi_heads.box_predictor.cls_score.in_features
