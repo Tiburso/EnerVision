@@ -28,7 +28,4 @@ class MaskRCNNModel(nn.Module):
 
     def forward(self, x):
         out = self.model(x)[0]
-
-        print(out)
-
         return out

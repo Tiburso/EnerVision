@@ -16,6 +16,10 @@ def polygons_to_mask(polygons, size=832):
 # Convert the mask to a polygon
 def mask_to_polygons(mask):
     mask = mask.astype(np.uint8)
+
+    # Reshape into size x size x 1
+    mask = mask.reshape(mask.shape[1], mask.shape[1], 1)
+
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     polygons = []
     for contour in contours:
