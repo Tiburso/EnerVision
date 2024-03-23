@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from shapely.geometry import Polygon
 from torch.utils.data import Dataset
+from torchvision.tv_tensors import BoundingBoxes, Mask
 
 from image_helpers import polygons_to_mask, polygons_to_bounding_boxes
 
@@ -54,10 +55,8 @@ class GermanyDataset(Dataset):
 
         # Define the target
         target = {
-            "boxes": torch.tensor(
-                polygons_to_bounding_boxes(polygons), dtype=torch.float32
-            ),
-            "masks": torch.tensor(mask, dtype=torch.float32).view(1, 832, 832),
+            "boxes": BoundingBoxes(polygons_to_bounding_boxes(polygons)),
+            "masks": Mask(mask, dtype=torch.float32).view(1, 832, 832),
             "labels": torch.tensor([1] * len(polygons), dtype=torch.int64),
             "image_id": torch.tensor([idx]),
             "area": torch.tensor(
