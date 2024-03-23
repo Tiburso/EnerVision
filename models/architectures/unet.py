@@ -111,6 +111,7 @@ class UNetModel(nn.Module):
         return logits
 
     def target(self, y):
+        # Convert into 3D tensor
         return y["masks"]
 
     def use_checkpointing(self):

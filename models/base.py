@@ -16,13 +16,14 @@ class BaseModel(pl.LightningModule):
         return self.model(x)
 
     def calculate_loss(self, y_hat, y):
+        y = self.model.target(y)
+
         return self.loss_fn(y_hat, y)
 
     def training_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.forward(X)
 
-        y = self.model.target(y)
         loss = self.calculate_loss(y_hat, y)
 
         self.log("train_loss", loss)
