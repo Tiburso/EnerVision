@@ -4,10 +4,8 @@ from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torch import nn
 
-from models.base import BaseModel
 
-
-class MaskRCNNModel(BaseModel):
+class MaskRCNNModel(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         # Load a pre-trained Mask RCNN model
