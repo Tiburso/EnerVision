@@ -22,6 +22,7 @@ class BaseModel(pl.LightningModule):
         X, y = batch
         y_hat = self.forward(X)
 
+        y = self.model.target(y)
         loss = self.calculate_loss(y_hat, y)
 
         self.log("train_loss", loss)

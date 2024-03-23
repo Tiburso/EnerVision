@@ -110,6 +110,9 @@ class UNetModel(nn.Module):
         logits = self.outc(x)
         return logits
 
+    def target(self, y):
+        return y["masks"]
+
     def use_checkpointing(self):
         self.inc = torch.utils.checkpoint(self.inc)
         self.down1 = torch.utils.checkpoint(self.down1)

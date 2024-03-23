@@ -32,3 +32,6 @@ class DeepLabModel(nn.Module):
     def warmup(self, input_size):
         self.eval()
         self(torch.randn(1, 3, input_size, input_size))
+
+    def target(self, y):
+        return y["masks"]
