@@ -22,3 +22,10 @@ def mask_to_polygons(mask):
         x, y, w, h = cv2.boundingRect(contour)
         polygons.append(Polygon([(x, y), (x + w, y), (x + w, y + h), (x, y + h)]))
     return polygons
+
+
+def polygon_to_bounding_box(polygon):
+    x, y, w, h = cv2.boundingRect(np.array(polygon.exterior))
+    return cv2.rectangle(
+        np.zeros((832, 832, 3)), (x, y), (x + w, y + h), (255, 0, 0), 2
+    )
