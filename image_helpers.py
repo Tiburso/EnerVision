@@ -1,16 +1,16 @@
 import cv2
 import numpy as np
 from shapely.geometry import Polygon
+from rasterio.features import geometry_mask, rasterize
+from torchvision.ops import masks_to_boxes
+from torchvision.tv_tensors import Mask
+import torch
 
 
-def polygons_to_mask(polygons, size=832):
-    mask = np.zeros((size, size, 1))
-    for polygon in polygons:
-        x, y = polygon.exterior.xy
-        x = np.array(x, dtype=np.int32)
-        y = np.array(y, dtype=np.int32)
-        mask = cv2.fillPoly(mask, [np.column_stack((x, y))], (255))
-    return mask
+def polygons_to_masks(polygons, size=832):
+    # Create a mask per polygon
+    masks = [rasterize([poly], out_shape=(size, size)) for poly in polygons]
+    return [Mask(torch.tensor(mask, dtype=torch.bool)) for mask in masks]
 
 
 # Convert the mask to a polygon
