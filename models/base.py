@@ -15,11 +15,14 @@ class BaseModel(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
+    def calculate_loss(self, y_hat, y):
+        return self.loss_fn(y_hat, y)
+
     def training_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.forward(X)
 
-        loss = self.loss_fn(y_hat, y)
+        loss = self.calculate_loss(y_hat, y)
 
         self.log("train_loss", loss)
 
@@ -28,7 +31,8 @@ class BaseModel(pl.LightningModule):
     def validation(self, batch, batch_idx):
         X, y = batch
         y_hat = self.forward(X)
-        loss = self.loss_fn(y_hat, y)
+
+        loss = self.calculate_loss(y_hat, y)
 
         self.log("val_loss", loss)
 

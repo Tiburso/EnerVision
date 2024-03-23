@@ -5,7 +5,7 @@ import pandas as pd
 from shapely.geometry import Polygon
 from torch.utils.data import Dataset
 
-from image_helpers import polygons_to_mask
+from image_helpers import polygons_to_mask, polygon_to_bounding_box
 
 
 def load_image_and_labels(file):
@@ -15,6 +15,7 @@ def load_image_and_labels(file):
     # Load the image
     image_name = file.replace("txt", "tif")
     image = cv2.imread("germany_dataset/images/" + image_name)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     # image size = 832 x 832
     # The x-center and y-center are in the range [0, 1]
@@ -51,6 +52,19 @@ class GermanyDataset(Dataset):
         # Normalize image
         image = image / 255.0
 
-        return torch.tensor(image, dtype=torch.float32).view(3, 832, 832), torch.tensor(
-            mask, dtype=torch.float32
-        ).view(1, 832, 832)
+        # Define the target
+        target = {
+            "boxes": torch.tensor(
+                [polygon_to_bounding_box(polygon) for polygon in polygons],
+                dtype=torch.float32,
+            ),
+            "masks": torch.tensor(mask, dtype=torch.float32).view(1, 832, 832),
+            "labels": torch.tensor([1] * len(polygons), dtype=torch.int64),
+            "image_id": torch.tensor([idx]),
+            "area": torch.tensor(
+                [polygon.area for polygon in polygons], dtype=torch.float32
+            ),
+            "iscrowd": torch.tensor([0] * len(polygons), dtype=torch.int64),
+        }
+
+        return torch.tensor(image, dtype=torch.float32).view(3, 832, 832), target

@@ -4,8 +4,10 @@ from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torch import nn
 
+from models.base import BaseModel
 
-class MaskRCNNModel(nn.Module):
+
+class MaskRCNNModel(BaseModel):
     def __init__(self, num_classes):
         super().__init__()
         # Load a pre-trained Mask RCNN model
@@ -23,7 +25,12 @@ class MaskRCNNModel(nn.Module):
             dim_reduced=dim_reduced,
             num_classes=num_classes,
         )
+
         self.model = model
 
     def forward(self, x):
-        return self.model(x)
+        out = self.model(x)[0]
+
+        print(out)
+
+        return out
