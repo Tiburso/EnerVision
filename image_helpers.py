@@ -24,6 +24,9 @@ def mask_to_polygons(mask):
     return polygons
 
 
-def polygon_to_bounding_box(polygon):
-    x, y, w, h = cv2.boundingRect(np.array(polygon.exterior))
-    return x, y, w, h
+def polygons_to_bounding_boxes(polygons):
+    boxes = []
+    for polygon in polygons:
+        x, y, w, h = cv2.boundingRect(np.array(polygon.exterior.coords, dtype=np.int32))
+        boxes.append([x, y, x + w, y + h])
+    return boxes

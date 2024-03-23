@@ -5,7 +5,7 @@ import pandas as pd
 from shapely.geometry import Polygon
 from torch.utils.data import Dataset
 
-from image_helpers import polygons_to_mask, polygon_to_bounding_box
+from image_helpers import polygons_to_mask, polygons_to_bounding_boxes
 
 
 def load_image_and_labels(file):
@@ -55,8 +55,7 @@ class GermanyDataset(Dataset):
         # Define the target
         target = {
             "boxes": torch.tensor(
-                [polygon_to_bounding_box(polygon) for polygon in polygons],
-                dtype=torch.float32,
+                polygons_to_bounding_boxes(polygons), dtype=torch.float32
             ),
             "masks": torch.tensor(mask, dtype=torch.float32).view(1, 832, 832),
             "labels": torch.tensor([1] * len(polygons), dtype=torch.int64),
