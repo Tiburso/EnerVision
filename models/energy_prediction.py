@@ -2,13 +2,13 @@ import numpy as np
 # refer to : https://github.com/pvlib/pvlib-python/blob/main/docs/examples/iv-modeling/plot_singlediode.py
 
 class Energy_prediction():
-    def __init__(self,zenith): 
+    def __init__(self,zenith,Isc,Imp,Voc,Vmp,Coefficients,a,b): 
         self.zenith = zenith
         self.irradiance = 1 
         self.E0 = 1000 # reference solar irradiance
         self.Eb = None # Beam irradiance on the plane of array
         self.Ed = None # Diffuse irradiance on the plane of array
-        self.Ee = Ee(Isc,Isc_0) # effective irradiance
+        self.Ee = Ee() # effective irradiance
 
         self.T0 = 25 # reference cell temperature
         self.TC = None # cell temperature
@@ -17,12 +17,12 @@ class Energy_prediction():
         self.f1 = f1(a) # air mass modifier
         self.f2 = f2(AOI,b) # angle of Incidence modifier
 
-        self.C = None #Vector of coeffients to update predictions 
+        self.C = Coefficients #Vector of coeffients to update predictions 
 
-        self.Isc= None #3x1
-        self.Imp= None #first value is Isc/Imp/Voc/Vmp/_0 second is alpha or beta value third is to be calculated
-        self.Voc= None
-        self.Vmp= None
+        self.Isc= Isc #3x1
+        self.Imp= Imp #first value is Isc/Imp/Voc/Vmp/_0 second is alpha or beta value third is to be calculated
+        self.Voc= Voc
+        self.Vmp= Vmp
         
         self.delta = delta(n)
 
@@ -33,8 +33,8 @@ class Energy_prediction():
         def f2(AOI, b):
             return b[0] + b[1] *AOI + b[2] *AOI**2 + b[3]* AOI **2 + b[4]* AOI**2 + b[5]* AOI**2
         
-        def Ee(Isc,Isc_0):
-            return Isc/ (Isc_0*(1+ self.alpha_isc(self.TC-self.T0)))
+        def Ee():
+            return self.Isc[2]/ (self.Isc[0]*(1+ self.Isc[2](self.TC-self.T0)))
         
         def delta(n):
             k = 138.066e-23 # boltzmann's constant
