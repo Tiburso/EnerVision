@@ -24,8 +24,8 @@ class Energy_prediction():
         self.delta = delta(n)
 
         def f1(a):
-            Am_a = self.AM
-            return a[0] + a[1] *Am_a + a[2] *AM_a**2 + a[3]* AM_a **2 + a[4]* AM_a**2
+            AM_a = self.AM
+            return a[0] + a[1]*AM_a + a[2]*AM_a**2 + a[3]* AM_a **2 + a[4]* AM_a**2
 
         def f2(AOI, b):
             return b[0] + b[1] *AOI + b[2] *AOI**2 + b[3]* AOI **2 + b[4]* AOI**2 + b[5]* AOI**2
