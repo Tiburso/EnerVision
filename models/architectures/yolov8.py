@@ -3,7 +3,7 @@ from ultralytics import YOLO
 class Yolov8(BaseModel):
     def __init__(self, num_classes):
         super().__init__()
-
+        #yolov8n-seg.torchscript
         self.model = YOLO('yolov8n-seg.pt')
 
     def forward(self, x):
