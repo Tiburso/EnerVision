@@ -17,9 +17,12 @@ class Energy_prediction():
         self.f1 = f1(a) # air mass modifier
         self.f2 = f2(AOI,b) # angle of Incidence modifier
 
-        self.alpha_isc = None #normalized temperature coefficient for short circuit current. Units are 1/C
-        self.alpha_lmp = None #normalized temperature coefficient for maximum power current. Units are 1/c
         self.C = None #Vector of coeffients to update predictions 
+
+        self.Isc= None #3x1
+        self.Imp= None #first value is Isc/Imp/Voc/Vmp/_0 second is alpha or beta value third is to be calculated
+        self.Voc= None
+        self.Vmp= None
         
         self.delta = delta(n)
 
@@ -43,6 +46,7 @@ class Energy_prediction():
             m_bvoc = 0 # coefficient describing the irradiance dependence for the open circuit voltage temperature coefficient (typically equals zero)
             beta_voc0 = None #is the temperature coefficient for module open circuit voltage at irradiance conditions of 1000 W/m^2
             return beta_voc0 + m_bvoc(1-self.Ee)
+   
     def sandia_prediction():
         # Define SAPM primary points 
         """
@@ -52,10 +56,11 @@ class Energy_prediction():
         self.Tc
         Ns
         """
-        Isc = Isc_0 * self.f1 (self.Eb *self.f2 + self.fd *self.Ed)* (1 + self.aplha_isc * (self.Tc -self.T0))
-        Imp = Imp_0 * (self.C[0]*self.Ee +self.C[1]*self.Ee**2)*(1 + self.aplha_imp * (self.Tc -self.T0))
-        Voc = Voc_0 + Ns * self.delta* np.log(self.Ee) + beta_Voc * (self.Tc - self.T0) # log = ln
-        Vmp = Vmp_0 + self.C[2]* Ns *self.delta *np.log(self.Ee) + self.C[3] *Ns *(self.delta *np.log(self.Ee))**2 + beta_Vmp* (self.Tc -self.T0)
+
+        self.Isc[3] = self.Isc[0] * self.f1 (self.Eb *self.f2 + self.fd *self.Ed)* (1 + self.Isc[2] * (self.Tc -self.T0))
+        self.Imp[3] = self.Imp[0] * (self.C[0]*self.Ee +self.C[1]*self.Ee**2)*(1 + self.Imp[2] * (self.Tc -self.T0))
+        self.Voc[3] = self.Voc[0] + Ns * self.delta* np.log(self.Ee) + self.Voc[2] * (self.Tc - self.T0) # log = ln
+        self.Vmp[3] = self.Vmp[0] + self.C[2]* Ns *self.delta *np.log(self.Ee) + self.C[3] *Ns *(self.delta *np.log(self.Ee))**2 + self.Vmp[2]* (self.Tc -self.T0)
 
         
 
