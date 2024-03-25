@@ -3,6 +3,18 @@ import numpy as np
 
 class Energy_prediction():
     def __init__(self,zenith,Isc,Imp,Voc,Vmp,Coefficients,a,b): 
+        """
+        Missing: 
+        Tc = cell temperature
+        Ns = ? 
+        Eb = Beam irradiance on the plane of array
+        Ed = Diffuse irradiance on the plane of array 
+        AOI = ? 
+        n = ? -> value in delta 
+        beta_voc beta_vmp = ?
+        where to get coefficients C,a,b used to model functions 
+        """
+           
         self.zenith = zenith
         self.irradiance = 1 
         self.E0 = 1000 # reference solar irradiance
@@ -49,14 +61,6 @@ class Energy_prediction():
    
     def sandia_prediction():
         # Define SAPM primary points 
-        """
-        Missing: 
-        _0 at beginning,
-        self.alpha beta_Vmp
-        self.Tc
-        Ns
-        """
-
         self.Isc[3] = self.Isc[0] * self.f1 (self.Eb *self.f2 + self.fd *self.Ed)* (1 + self.Isc[2] * (self.Tc -self.T0))
         self.Imp[3] = self.Imp[0] * (self.C[0]*self.Ee +self.C[1]*self.Ee**2)*(1 + self.Imp[2] * (self.Tc -self.T0))
         self.Voc[3] = self.Voc[0] + Ns * self.delta* np.log(self.Ee) + self.Voc[2] * (self.Tc - self.T0) # log = ln
