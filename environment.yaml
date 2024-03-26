@@ -1,0 +1,25 @@
+name: interdisciplinary_project
+channels:
+  - pytorch
+  - conda-forge
+  - nvidia
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - matplotlib
+  - seaborn
+  - ipywidgets
+  - scipy
+  - scikit-image
+  - scikit-learn
+  - pytorch
+  - torchvision
+  - pytorch-lightning
+  - python-dotenv
+  - ultralytics
+  - roboflow
+  - shapely
+  - rasterio
+  - transformers
+  - cudatoolkit
