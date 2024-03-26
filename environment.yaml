@@ -18,8 +18,11 @@ dependencies:
   - pytorch-lightning
   - python-dotenv
   - ultralytics
-  - roboflow
   - shapely
   - rasterio
   - transformers
   - cudatoolkit
+  - pip
+
+  - pip:
+      - roboflow
