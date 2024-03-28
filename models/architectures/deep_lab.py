@@ -26,7 +26,6 @@ class DeepLabModel(nn.Module):
 
     def forward(self, x):
         x = self.model(x)["out"]
-        # x = self.classifier(x)
         return x
 
     def warmup(self, input_size):
@@ -34,4 +33,4 @@ class DeepLabModel(nn.Module):
         self(torch.randn(1, 3, input_size, input_size))
 
     def target(self, y):
-        return y["masks"]
+        return y
