@@ -7,7 +7,7 @@ from torch import nn
 
 
 class DeepLabModel(nn.Module):
-    def __init__(self, input_size, num_classes):
+    def __init__(self, num_classes):
         super().__init__()
         # Load a pre-trained DeepLab model
         self.model = deeplabv3_resnet50(
@@ -22,15 +22,9 @@ class DeepLabModel(nn.Module):
             256, num_classes, kernel_size=(1, 1), stride=(1, 1)
         )
 
-        self.warmup(input_size)
-
     def forward(self, x):
         x = self.model(x)["out"]
         return x
-
-    def warmup(self, input_size):
-        self.eval()
-        self(torch.randn(1, 3, input_size, input_size))
 
     def target(self, y):
         return y

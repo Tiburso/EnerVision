@@ -3,6 +3,8 @@ import os
 import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
+from pytorch_lightning.strategies import DDPStrategy
+
 from models.base import BaseModel
 from models.architectures.deep_lab import DeepLabModel
 from models.architectures.mask_rcnn import MaskRCNNModel
@@ -38,14 +40,15 @@ loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 base_model = BaseModel(model, loss_fn, optimizer)
-trainer = pl.Trainer(max_epochs=10, min_epochs=2)
+trainer = pl.Trainer(
+    strategy=DDPStrategy(find_unused_parameters=False), max_epochs=10, min_epochs=2
+)
 
+trainer.fit(
+    base_model,
+    train_loader,
+    validation_loader,
+)
 
-# trainer.fit(
-#     base_model,
-#     train_loader,
-#     validation_loader,
-# )
-
-# # Save the model
-# torch.save(model.state_dict(), f"{model.__class__.__name__}.pth")
+# Save the model
+torch.save(model.state_dict(), f"{model.__class__.__name__}.pth")
