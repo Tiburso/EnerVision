@@ -165,6 +165,7 @@ NL-Solar-Panel-Seg-1/
 
 lightning_logs/
 **/*.pt
+**/*.pth
 data/*
 
 slurm-*

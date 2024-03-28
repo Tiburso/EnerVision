@@ -19,8 +19,8 @@ test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
 transform = transforms.Compose(
     [
-        transforms.PILToTensor(),
         transforms.ToDtype(torch.float32),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
 
@@ -32,7 +32,7 @@ train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_worker
 validation_loader = DataLoader(validation_dataset, batch_size=16, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-model = DeepLabModel(input_size=320, num_classes=1)
+model = DeepLabModel(num_classes=1)
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
@@ -41,7 +41,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 base_model = BaseModel(model, loss_fn, optimizer)
 trainer = pl.Trainer(
-    strategy=DDPStrategy(find_unused_parameters=False), max_epochs=10, min_epochs=2
+    strategy="ddp_find_unused_parameters_true", max_epochs=10, min_epochs=5
 )
 
 trainer.fit(

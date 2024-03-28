@@ -2,6 +2,7 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image, ImageDraw
 from torchvision import transforms
 from torchvision.transforms import functional as TF
+from torchvision.transforms.v2 import PILToTensor
 import os
 
 
@@ -35,8 +36,11 @@ class SolarDKDataset(Dataset):
         else:
             mask = Image.new("L", image.size)
 
+        # Convert into torch tensor
+        image = PILToTensor()(image)
+        mask = PILToTensor()(mask)
+
         if self.transform is not None:
             image = self.transform(image)
-            mask = self.transform(mask)
 
         return image, mask
