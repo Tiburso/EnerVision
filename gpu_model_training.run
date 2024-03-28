@@ -5,6 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=elec.gpu.q
 #SBATCH --gres gpu:4 
+#SBATCH --gpus=4
 #SBATCH --cpus-per-task 4
 #SBATCH --error=slurm-%j.err
 #SBATCH --output=slurm-%j.out

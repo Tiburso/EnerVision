@@ -41,7 +41,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 base_model = BaseModel(model, loss_fn, optimizer)
 trainer = pl.Trainer(
-    strategy="ddp_find_unused_parameters_true", max_epochs=10, min_epochs=5
+    strategy="ddp_find_unused_parameters_true", max_epochs=10, min_epochs=3, num_nodes=4
 )
 
 trainer.fit(
