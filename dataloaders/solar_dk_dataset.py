@@ -38,7 +38,7 @@ class SolarDKDataset(Dataset):
 
         # Convert into torch tensor
         image = PILToTensor()(image)
-        mask = PILToTensor()(mask)
+        mask = PILToTensor()(mask).float()
 
         if self.transform is not None:
             image = self.transform(image)

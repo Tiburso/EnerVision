@@ -3,6 +3,8 @@ from torchvision.models.segmentation import (
     deeplabv3_resnet50,
     DeepLabV3_ResNet50_Weights,
 )
+
+from torchvision.models.segmentation.deeplabv3 import DeepLabHead
 from torch import nn
 
 
@@ -15,12 +17,7 @@ class DeepLabModel(nn.Module):
         )
 
         # Change the classifier to output the number of classes
-        self.model.classifier[4] = nn.Conv2d(
-            256, num_classes, kernel_size=(1, 1), stride=(1, 1)
-        )
-        self.model.aux_classifier[4] = nn.Conv2d(
-            256, num_classes, kernel_size=(1, 1), stride=(1, 1)
-        )
+        self.model.classifier = DeepLabHead(2048, num_classes)
 
     def forward(self, x):
         x = self.model(x)["out"]

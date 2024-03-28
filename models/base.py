@@ -26,6 +26,11 @@ class BaseModel(pl.LightningModule):
 
         loss = self.calculate_loss(y_hat, y)
 
+        print(y_hat)
+        print(y)
+
+        print(loss)
+
         self.log("train_loss", loss)
 
         return loss
