@@ -13,7 +13,7 @@ import torchvision.transforms.v2 as transforms
 
 train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
 validation_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/val"
-test_folder = "data/solardk_dataset_neurips_v2/herlev_test"
+test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
 transform = transforms.Compose(
     [
@@ -30,7 +30,7 @@ train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_worker
 validation_loader = DataLoader(validation_dataset, batch_size=16, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-model = DeepLabModel(input_size=832, num_classes=1)
+model = DeepLabModel(input_size=320, num_classes=1)
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
@@ -40,11 +40,12 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 base_model = BaseModel(model, loss_fn, optimizer)
 trainer = pl.Trainer(max_epochs=10, min_epochs=2)
 
-trainer.fit(
-    base_model,
-    train_loader,
-    validation_loader,
-)
 
-# Save the model
-torch.save(model.state_dict(), f"{model.__class__.__name__}.pth")
+# trainer.fit(
+#     base_model,
+#     train_loader,
+#     validation_loader,
+# )
+
+# # Save the model
+# torch.save(model.state_dict(), f"{model.__class__.__name__}.pth")

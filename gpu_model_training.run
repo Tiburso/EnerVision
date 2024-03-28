@@ -8,11 +8,13 @@
 #SBATCH --cpus-per-task 4
 #SBATCH --error=slurm-%j.err
 #SBATCH --output=slurm-%j.out
-#SBATCH --time=00:00:10
+#SBATCH --time=04:00:00
 
-module load python3
+# module load python3
 module load CUDA/12.1.1
 
 source .venv/bin/activate
+
+export PYTHONPATH="$pwd:$PYTHONPATH"
 
 python main.py
