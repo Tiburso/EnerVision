@@ -15,3 +15,4 @@ roboflow
 shapely
 rasterio
 transformers
+pycocotools

@@ -165,3 +165,4 @@ NL-Solar-Panel-Seg-1/
 
 lightning_logs/
 **/*.pt
+data/*
