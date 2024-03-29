@@ -28,8 +28,10 @@ train_dataset = SolarDKDataset(train_folder, transform=transform)
 validation_dataset = SolarDKDataset(validation_folder, transform=transform)
 test_dataset = SolarDKDataset(test_folder, transform=transform)
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=7)
-validation_loader = DataLoader(validation_dataset, batch_size=16, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4)
+validation_loader = DataLoader(
+    validation_dataset, batch_size=16, shuffle=False, num_workers=4
+)
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
 model = DeepLabModel(num_classes=1)
@@ -41,7 +43,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 base_model = BaseModel(model, loss_fn, optimizer)
 trainer = pl.Trainer(
-    strategy="ddp_find_unused_parameters_true", max_epochs=10, min_epochs=3, num_nodes=4
+    strategy="ddp_find_unused_parameters_true", max_epochs=10, min_epochs=3, num_nodes=1
 )
 
 trainer.fit(
@@ -50,5 +52,4 @@ trainer.fit(
     validation_loader,
 )
 
-# Save the model
-torch.save(model.state_dict(), f"{model.__class__.__name__}.pth")
+trainer.test(base_model, test_loader)

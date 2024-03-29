@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 from torch import nn
 import torch
+from torchmetrics import Accuracy, Precision, Recall, F1Score, JaccardIndex
 
 
 class BaseModel(pl.LightningModule):
@@ -11,6 +12,12 @@ class BaseModel(pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.metrics = metrics
+
+        self.accuracy = Accuracy(task="binary")
+        self.precision = Precision(task="binary")
+        self.recall = Recall(task="binary")
+        self.f1 = F1Score(task="binary")
+        self.jaccard = JaccardIndex(task="binary")
 
     def forward(self, x):
         return self.model(x)
@@ -36,7 +43,16 @@ class BaseModel(pl.LightningModule):
 
         loss = self.calculate_loss(y_hat, y)
 
-        self.log("val_loss", loss)
+        metrics = {
+            "val_loss": loss,
+            "val_accuracy": self.accuracy(y_hat, y),
+            "val_precision": self.precision(y_hat, y),
+            "val_recall": self.recall(y_hat, y),
+            "val_f1": self.f1(y_hat, y),
+            "val_jaccard": self.jaccard(y_hat, y),
+        }
+
+        self.log_dict(metrics)
 
         return loss
 
