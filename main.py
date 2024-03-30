@@ -52,9 +52,9 @@ model = DeepLabModel(num_classes=1, backbone="resnet50")
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-treshold = 0.1
+treshold = 0.5
 loss_fn = AsymmetricUnifiedFocalLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler, treshold)
