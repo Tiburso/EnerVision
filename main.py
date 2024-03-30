@@ -43,16 +43,26 @@ train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
 validation_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/val"
 test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
-transform = transforms.Compose(
+train_transform = transforms.Compose(
     [
-        transforms.ToDtype(torch.float32),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.ToDtype(torch.uint8, scale=True),
+        transforms.Resize((512, 512)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
     ]
 )
 
-train_dataset = SolarDKDataset(train_folder, transform=transform)
-validation_dataset = SolarDKDataset(validation_folder, transform=transform)
-test_dataset = SolarDKDataset(test_folder, transform=transform)
+test_transform = transforms.Compose(
+    [
+        transforms.ToDtype(torch.uint8, scale=True),
+        transforms.Resize((512, 512)),
+    ]
+)
+
+# Apply the transformations to the dataset
+train_dataset = SolarDKDataset(train_folder, transform=train_transform)
+validation_dataset = SolarDKDataset(validation_folder, transform=test_transform)
+test_dataset = SolarDKDataset(test_folder, transform=test_transform)
 
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=4)
 validation_loader = DataLoader(
