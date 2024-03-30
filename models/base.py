@@ -71,4 +71,7 @@ class BaseModel(pl.LightningModule):
         return self.validation(batch, batch_idx)
 
     def configure_optimizers(self):
+        if self.scheduler:
+            return [self.optimizer], [self.scheduler]
+
         return self.optimizer
