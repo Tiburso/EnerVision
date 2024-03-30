@@ -60,7 +60,7 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-model = DeepLabModel(num_classes=1, backbone="resnet101")
+model = DeepLabModel(num_classes=1, backbone="resnet50")
 # model = FCNResNetModel(num_classes=1, backbone="resnet50")
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
