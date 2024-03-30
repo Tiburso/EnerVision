@@ -47,6 +47,7 @@ class BaseModel(pl.LightningModule):
 
         # Turn the predictions positive
         y_hat = self.model.target(y_hat)
+
         y_hat = torch.sigmoid(y_hat)
         y_hat = (y_hat > 0.5).float()
 
@@ -59,7 +60,7 @@ class BaseModel(pl.LightningModule):
             "val_jaccard": self.jaccard(y_hat, y),
         }
 
-        self.log_dict(metrics)
+        self.log_dict(metrics, sync_dist=True)
 
         return loss
 
