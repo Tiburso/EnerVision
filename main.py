@@ -34,7 +34,7 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-model = DeepLabModel(num_classes=1)
+model = DeepLabModel(num_classes=2)
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 

@@ -47,7 +47,7 @@ class BaseModel(pl.LightningModule):
 
         # Turn the predictions positive
         y_hat = self.model.target(y_hat)
-        y_hat = torch.abs(y_hat)
+        y_hat = y_hat.argmax(dim=0)
 
         metrics = {
             "val_loss": loss,

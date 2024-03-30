@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image, ImageDraw
 from torchvision import transforms
@@ -39,6 +40,8 @@ class SolarDKDataset(Dataset):
         # Convert into torch tensor
         image = ToTensor()(image)
         mask = ToTensor()(mask).float()
+
+        mask = torch.cat([mask, 1 - mask], dim=0)
 
         if self.transform is not None:
             image = self.transform(image)
