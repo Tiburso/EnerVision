@@ -1,7 +1,13 @@
 import pytorch_lightning as pl
 from torch import nn
 import torch
-from torchmetrics import Accuracy, Precision, Recall, F1Score, Dice
+from torchmetrics.functional.classification import (
+    dice,
+    binary_precision,
+    binary_recall,
+    binary_f1_score,
+    binary_jaccard_index,
+)
 
 
 class BaseModel(pl.LightningModule):
@@ -12,12 +18,6 @@ class BaseModel(pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.metrics = metrics
-
-        self.accuracy = Accuracy(task="binary")
-        self.precision = Precision(task="binary")
-        self.recall = Recall(task="binary")
-        self.f1 = F1Score(task="binary")
-        self.dice = Dice()
 
         self.save_hyperparameters()
 
@@ -50,11 +50,11 @@ class BaseModel(pl.LightningModule):
 
         metrics = {
             "val_loss": loss,
-            "val_accuracy": self.accuracy(y_hat, y),
-            "val_precision": self.precision(y_hat, y),
-            "val_recall": self.recall(y_hat, y),
-            "val_f1": self.f1(y_hat, y),
-            "val_dice": self.dice(y_hat, y.int()),
+            "val_dice": dice(y_hat, y.int()),
+            "val_jaccard": binary_jaccard_index(y_hat, y),
+            "val_precision": binary_precision(y_hat, y),
+            "val_recall": binary_recall(y_hat, y),
+            "val_f1": binary_f1_score(y_hat, y),
         }
 
         self.log_dict(metrics, sync_dist=True)
