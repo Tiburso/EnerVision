@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
-from torchmetrics.functional import jaccard_index
+from torchmetrics.functional import dice
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from models.base import BaseModel
@@ -18,12 +18,11 @@ from dataloaders.solar_dk_dataset import SolarDKDataset
 import torchvision.transforms.v2 as transforms
 
 
-"""
-Combined loss class combines both the binary cross entropy loss and the dice loss
-"""
-
-
 class CombinedLoss(torch.nn.Module):
+    """
+    Combined loss class combines both the binary cross entropy loss and the dice loss
+    """
+
     def __init__(self, alpha=0.5):
         super(CombinedLoss, self).__init__()
         self.alpha = alpha
@@ -31,12 +30,12 @@ class CombinedLoss(torch.nn.Module):
 
     def forward(self, y_pred, y_true):
         bce_loss = self.bce_loss(y_pred, y_true)
-        jaccard_loss = jaccard_index(y_pred, y_true, task="binary")
+        dice_loss = dice(y_pred, y_true.int())
 
-        # Normalize the jaccard loss
-        jaccard_loss = 1 - jaccard_loss
+        # Normalize the dice loss
+        dice_loss = 1 - dice_loss
 
-        return self.alpha * bce_loss + (1 - self.alpha) * jaccard_loss
+        return self.alpha * bce_loss + (1 - self.alpha) * dice_loss
 
 
 train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
@@ -76,7 +75,7 @@ model = DeepLabModel(num_classes=1, backbone="resnet50")
 # model = Yolov8Model(num_classes=1)
 
 loss_fn = CombinedLoss(alpha=0.5)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler)
