@@ -18,10 +18,11 @@ import torchvision.transforms.v2 as transforms
 
 
 class SigmoidFocalLoss(torch.nn.Module):
-    def __init__(self, gamma=2.0, alpha=0.25):
+    def __init__(self, gamma=2.0, alpha=0.25, reduction="mean"):
         super().__init__()
         self.gamma = gamma
         self.alpha = alpha
+        self.reduction = reduction
 
     def forward(self, input, target):
         return sigmoid_focal_loss(input, target, self.gamma, self.alpha)
@@ -53,7 +54,7 @@ model = DeepLabModel(num_classes=1, backbone="resnet101")
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-loss_fn = SigmoidFocalLoss(alpha=0.15)
+loss_fn = SigmoidFocalLoss(alpha=0.90)
 optimizer = torch.optim.AdamW(model.parameters())
 
 base_model = BaseModel(model, loss_fn, optimizer)
