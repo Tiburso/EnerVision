@@ -65,8 +65,8 @@ model = DeepLabModel(num_classes=1, backbone="resnet50")
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-loss_fn = torch.nn.BCEWithLogitsLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+loss_fn = CombinedLoss(alpha=0.5)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler)
