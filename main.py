@@ -44,8 +44,7 @@ test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
 train_transform = transforms.Compose(
     [
-        transforms.ToDtype(torch.uint8, scale=True),
-        transforms.Resize((512, 512)),
+        transforms.ToDtype(torch.uint8),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomVerticalFlip(p=0.5),
     ]
@@ -53,8 +52,7 @@ train_transform = transforms.Compose(
 
 test_transform = transforms.Compose(
     [
-        transforms.ToDtype(torch.uint8, scale=True),
-        transforms.Resize((512, 512)),
+        transforms.ToDtype(torch.uint8),
     ]
 )
 

@@ -50,11 +50,11 @@ class BaseModel(pl.LightningModule):
 
         metrics = {
             "val_loss": loss,
-            "val_dice": dice(y_hat, y.int()),
             "val_jaccard": binary_jaccard_index(y_hat, y),
             "val_precision": binary_precision(y_hat, y),
             "val_recall": binary_recall(y_hat, y),
             "val_f1": binary_f1_score(y_hat, y),
+            "val_dice": dice(y_hat, y.int()),
         }
 
         self.log_dict(metrics, sync_dist=True)
