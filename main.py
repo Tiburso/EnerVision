@@ -31,7 +31,7 @@ class CombinedLoss(torch.nn.Module):
         self.treshold = treshold
 
     def forward(self, y_pred, y_true):
-        focal_loss = sigmoid_focal_loss(y_pred, y_true.int(), reduction="mean")
+        focal_loss = sigmoid_focal_loss(y_pred, y_true, reduction="mean")
         dice_loss = dice(y_pred, y_true.int(), threshold=self.treshold)
 
         # Normalize the dice loss
@@ -76,7 +76,7 @@ model = DeepLabModel(num_classes=1, backbone="resnet50")
 
 treshold = 0.1
 loss_fn = CombinedLoss(alpha=0.5, treshold=treshold)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler, treshold)
