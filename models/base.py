@@ -11,12 +11,15 @@ from torchmetrics.functional.classification import (
 
 
 class BaseModel(pl.LightningModule):
-    def __init__(self, model, loss_fn, optimizer, scheduler=None, metrics=None):
+    def __init__(
+        self, model, loss_fn, optimizer, scheduler=None, treshold=0.5, metrics=None
+    ):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.treshold = treshold
         self.metrics = metrics
 
         self.save_hyperparameters()
@@ -50,11 +53,10 @@ class BaseModel(pl.LightningModule):
 
         metrics = {
             "val_loss": loss,
-            "val_jaccard": binary_jaccard_index(y_hat, y),
-            "val_precision": binary_precision(y_hat, y),
-            "val_recall": binary_recall(y_hat, y),
-            "val_f1": binary_f1_score(y_hat, y),
-            "val_dice": dice(y_hat, y.int()),
+            "val_precision": binary_precision(y_hat, y, threshold=self.treshold),
+            "val_recall": binary_recall(y_hat, y, threshold=self.treshold),
+            "val_f1": binary_f1_score(y_hat, y, threshold=self.treshold),
+            "val_dice": dice(y_hat, y.int(), threshold=self.treshold),
         }
 
         self.log_dict(metrics, sync_dist=True)
