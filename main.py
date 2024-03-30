@@ -1,9 +1,9 @@
 # From the dataset, create a train and test set
-import os
 import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-from pytorch_lightning.strategies import DDPStrategy
+
+from torchvision.ops.focal_loss import sigmoid_focal_loss
 
 from models.base import BaseModel
 from models.architectures import (
@@ -15,6 +15,17 @@ from models.architectures import (
 
 from dataloaders.solar_dk_dataset import SolarDKDataset
 import torchvision.transforms.v2 as transforms
+
+
+class SigmoidFocalLoss(torch.nn.Module):
+    def __init__(self, gamma=2.0, alpha=0.25):
+        super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+
+    def forward(self, input, target):
+        return sigmoid_focal_loss(input, target, self.gamma, self.alpha)
+
 
 train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
 validation_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/val"
@@ -37,12 +48,12 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-# model = DeepLabModel(num_classes=1, backbone="resnet101")
-model = FCNResNetModel(num_classes=1, backbone="resnet101")
+model = DeepLabModel(num_classes=1, backbone="resnet101")
+# model = FCNResNetModel(num_classes=1, backbone="resnet50")
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-loss_fn = torch.nn.BCEWithLogitsLoss()
+loss_fn = SigmoidFocalLoss(alpha=0.15)
 optimizer = torch.optim.AdamW(model.parameters())
 
 base_model = BaseModel(model, loss_fn, optimizer)

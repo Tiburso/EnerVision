@@ -60,7 +60,7 @@ class BaseModel(pl.LightningModule):
             "val_jaccard": self.jaccard(y_hat, y),
         }
 
-        self.log_dict(metrics, sync_dist=True)
+        self.log_dict(metrics)
 
         return loss
 
