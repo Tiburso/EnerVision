@@ -19,6 +19,8 @@ class BaseModel(pl.LightningModule):
         self.f1 = F1Score(task="binary")
         self.jaccard = JaccardIndex(task="binary")
 
+        self.save_hyperparameters()
+
     def forward(self, x):
         return self.model(x)
 
@@ -42,6 +44,10 @@ class BaseModel(pl.LightningModule):
         y_hat = self.forward(X)
 
         loss = self.calculate_loss(y_hat, y)
+
+        # Turn the predictions positive
+        y_hat = self.model.target(y_hat)
+        y_hat = torch.abs(y_hat)
 
         metrics = {
             "val_loss": loss,

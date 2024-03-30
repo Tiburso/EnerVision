@@ -38,12 +38,15 @@ model = DeepLabModel(num_classes=1)
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-loss_fn = torch.nn.BCEWithLogitsLoss()
+loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 base_model = BaseModel(model, loss_fn, optimizer)
 trainer = pl.Trainer(
-    strategy="ddp_find_unused_parameters_true", max_epochs=10, min_epochs=3, num_nodes=1
+    strategy="ddp_find_unused_parameters_true",
+    max_epochs=10,
+    min_epochs=3,
+    enable_checkpointing=True,
 )
 
 trainer.fit(
