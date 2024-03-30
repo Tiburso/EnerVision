@@ -34,12 +34,12 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-model = DeepLabModel(num_classes=2)
+model = DeepLabModel(num_classes=1)
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+loss_fn = torch.nn.BCELoss()
+optimizer = torch.optim.AdamW(model.parameters())
 
 base_model = BaseModel(model, loss_fn, optimizer)
 trainer = pl.Trainer(
