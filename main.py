@@ -6,9 +6,12 @@ import pytorch_lightning as pl
 from pytorch_lightning.strategies import DDPStrategy
 
 from models.base import BaseModel
-from models.architectures.deep_lab import DeepLabModel
-from models.architectures.mask_rcnn import MaskRCNNModel
-from models.architectures.yolov8 import Yolov8Model
+from models.architectures import (
+    DeepLabModel,
+    FCNResNetModel,
+    MaskRCNNModel,
+    Yolov8Model,
+)
 
 from dataloaders.solar_dk_dataset import SolarDKDataset
 import torchvision.transforms.v2 as transforms
@@ -34,11 +37,12 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-model = DeepLabModel(num_classes=1)
+# model = DeepLabModel(num_classes=1, backbone="resnet101")
+model = FCNResNetModel(num_classes=1, backbone="resnet101")
 # model = MaskRCNNModel(num_classes=1)
 # model = Yolov8Model(num_classes=1)
 
-loss_fn = torch.nn.BCELoss()
+loss_fn = torch.nn.BCEWithLogitsLoss()
 optimizer = torch.optim.AdamW(model.parameters())
 
 base_model = BaseModel(model, loss_fn, optimizer)

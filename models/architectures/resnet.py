@@ -10,7 +10,7 @@ from torchvision.models.segmentation import (
 from torchvision.models.segmentation.fcn import FCNHead
 
 
-class ResNetModel(nn.Module):
+class FCNResNetModel(nn.Module):
     def __init__(self, num_classes, backbone="resnet50"):
         super().__init__()
         # Load a pre-trained FCN model
