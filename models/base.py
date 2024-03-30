@@ -72,6 +72,10 @@ class BaseModel(pl.LightningModule):
 
     def configure_optimizers(self):
         if self.scheduler:
-            return [self.optimizer], [self.scheduler]
+            return {
+                "optimizer": self.optimizer,
+                "lr_scheduler": self.scheduler,
+                "monitor": "val_jaccard",
+            }
 
         return self.optimizer
