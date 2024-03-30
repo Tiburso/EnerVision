@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
-from unified_focal_loss import AsymmetricUnifiedFocalLoss
+from torchmetrics.functional.classification import dice
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -17,6 +17,19 @@ from models.architectures import (
 
 from dataloaders.solar_dk_dataset import SolarDKDataset
 import torchvision.transforms.v2 as transforms
+
+
+class CombinedBCEDiceLoss(torch.nn.Module):
+    def __init__(self):
+        super(CombinedBCEDiceLoss, self).__init__()
+        self.bce = torch.nn.BCEWithLogitsLoss()
+
+    def forward(self, y_hat, y):
+        bce = self.bce(y_hat, y)
+        y_hat = torch.sigmoid(y_hat)
+        dice_loss = 1 - dice(y_hat, y.int())
+        return bce + dice_loss
+
 
 train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
 validation_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/val"
@@ -53,7 +66,7 @@ model = DeepLabModel(num_classes=1, backbone="resnet50")
 # model = Yolov8Model(num_classes=1)
 
 treshold = 0.5
-loss_fn = AsymmetricUnifiedFocalLoss()
+loss_fn = CombinedBCEDiceLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
