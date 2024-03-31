@@ -42,22 +42,17 @@ test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
 train_transform = transforms.Compose(
     [
-        transforms.ToDtype(torch.uint8),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomVerticalFlip(p=0.5),
-    ]
-)
-
-test_transform = transforms.Compose(
-    [
-        transforms.ToDtype(torch.uint8),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomRotation(45),
+        transforms.RandomResizedCrop(512, scale=(0.8, 1.0)),
     ]
 )
 
 # Apply the transformations to the dataset
 train_dataset = SolarDKDataset(train_folder, transform=train_transform)
-validation_dataset = SolarDKDataset(validation_folder, transform=test_transform)
-test_dataset = SolarDKDataset(test_folder, transform=test_transform)
+validation_dataset = SolarDKDataset(validation_folder)
+test_dataset = SolarDKDataset(test_folder)
 
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=4)
 validation_loader = DataLoader(

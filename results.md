@@ -7,4 +7,5 @@
 - 206430: 2-class; AUFL; weight - 0.5; delta - 0.75; gamma - 0.2; Backbone - `resnet101`
 - 206433: 2-class; AUFL; weight - 0.5; delta - 0.80; gamma - 0.2; Backbone - `resnet101`
 - 206443: 2-class; AUFL; weight - 0.5; delta - 0.85; gamma - 0.4; Backbone - `resnet101`
-- 206455: 2-class; AUFL; weight - 0.4; delta - 0.85; gamma - 0.1; Backbone - `resnet101`
+- 206455: 2-class; AUFL; weight - 0.4; delta - 0.85; gamma - 0.1; Backbone - `resnet101` (2nd best)
+- 206463: 2-class; AUFL; weight - 0.4; delta - 0.85; gamma - 0.1; Backbone - `resnet101`; lr = 5e-5(reduced_dataset + resize)
