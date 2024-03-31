@@ -1,6 +1,5 @@
 from segmentation_models_pytorch import DeepLabV3Plus
-
-from torchvision.models.segmentation.deeplabv3 import DeepLabHead
+from segmentation_models_pytorch.encoders import get_preprocessing_fn
 from torch import nn
 
 
@@ -9,7 +8,6 @@ class DeepLabModel(nn.Module):
         super().__init__()
         self.model = DeepLabV3Plus(
             encoder_name=backbone,
-            encoder_weights="imagenet",
             in_channels=3,
             classes=num_classes,
         )
