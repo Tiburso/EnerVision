@@ -7,6 +7,10 @@ from torchmetrics.functional.classification import (
     multiclass_f1_score,
     multiclass_jaccard_index,
     dice,
+    binary_precision,
+    binary_recall,
+    binary_f1_score,
+    binary_jaccard_index,
 )
 
 
@@ -45,7 +49,6 @@ class BaseModel(pl.LightningModule):
 
     def validation(self, batch, batch_idx):
         X, y = batch
-        y = y.argmax(dim=1)
 
         y_hat = self.forward(X)
 
@@ -55,13 +58,22 @@ class BaseModel(pl.LightningModule):
         y_hat: torch.Tensor = self.model.target(y_hat)
         y_hat = y_hat.argmax(dim=1)
 
+        # metrics = {
+        #     "val_loss": loss,
+        #     "val_dice": dice(y_hat, y.int()),
+        #     "val_precision": multiclass_precision(y_hat, y, num_classes=2),
+        #     "val_recall": multiclass_recall(y_hat, y, num_classes=2),
+        #     "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
+        #     "val_jaccard": multiclass_jaccard_index(y_hat, y, num_classes=2),
+        # }
+
         metrics = {
             "val_loss": loss,
             "val_dice": dice(y_hat, y.int()),
-            "val_precision": multiclass_precision(y_hat, y, num_classes=2),
-            "val_recall": multiclass_recall(y_hat, y, num_classes=2),
-            "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
-            "val_jaccard": multiclass_jaccard_index(y_hat.abs(), y, num_classes=2),
+            "val_precision": binary_precision(y_hat, y),
+            "val_recall": binary_recall(y_hat, y),
+            "val_f1": binary_f1_score(y_hat, y),
+            "val_jaccard": binary_jaccard_index(y_hat, y),
         }
 
         self.log_dict(metrics, sync_dist=True)

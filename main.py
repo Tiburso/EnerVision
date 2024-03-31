@@ -26,9 +26,9 @@ import torchvision.transforms.v2 as transforms
 class CombinedLoss(nn.Module):
     def __init__(self):
         super(CombinedLoss, self).__init__()
-        self.cross_entropy = nn.CrossEntropyLoss()
-        self.dice_loss = DiceLoss(mode="multiclass")
-        self.jaccard_loss = JaccardLoss(mode="multiclass")
+        self.cross_entropy = nn.BCEWithLogitsLoss()
+        self.dice_loss = DiceLoss(mode="binary")
+        self.jaccard_loss = JaccardLoss(mode="binary")
 
     def forward(self, y_pred, y_true):
         cross_entropy_loss = self.cross_entropy(y_pred, y_true)
@@ -62,7 +62,7 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
-model = DeepLabModel(num_classes=2, backbone="resnet152")
+model = DeepLabModel(num_classes=1, backbone="resnet152")
 
 loss_fn = CombinedLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
