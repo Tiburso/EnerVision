@@ -66,7 +66,7 @@ model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 loss_fn = CombinedLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
-scheduler = PolynomialLR(optimizer, power=0.9, max_epochs=100)
+scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
