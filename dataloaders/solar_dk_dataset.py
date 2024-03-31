@@ -55,4 +55,6 @@ class SolarDKDataset(Dataset):
         image = normalize(image)
         mask = F.to_dtype(mask, torch.float32, scale=True)
 
+        mask = torch.cat([1 - mask, mask], dim=0)
+
         return image, mask

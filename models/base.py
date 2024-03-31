@@ -7,6 +7,10 @@ from torchmetrics.functional.classification import (
     binary_recall,
     binary_f1_score,
     binary_jaccard_index,
+    multiclass_precision,
+    multiclass_recall,
+    multiclass_f1_score,
+    multiclass_jaccard_index,
 )
 
 
@@ -51,12 +55,20 @@ class BaseModel(pl.LightningModule):
         # Turn the predictions positive
         y_hat = self.model.target(y_hat)
 
+        # metrics = {
+        #     "val_loss": loss,
+        #     "val_precision": binary_precision(y_hat, y, threshold=self.treshold),
+        #     "val_recall": binary_recall(y_hat, y, threshold=self.treshold),
+        #     "val_f1": binary_f1_score(y_hat, y, threshold=self.treshold),
+        #     "val_dice": dice(y_hat, y.int(), threshold=self.treshold),
+        # }
+
         metrics = {
             "val_loss": loss,
-            "val_precision": binary_precision(y_hat, y, threshold=self.treshold),
-            "val_recall": binary_recall(y_hat, y, threshold=self.treshold),
-            "val_f1": binary_f1_score(y_hat, y, threshold=self.treshold),
-            "val_dice": dice(y_hat, y.int(), threshold=self.treshold),
+            "val_precision": multiclass_precision(y_hat, y, num_classes=2),
+            "val_recall": multiclass_recall(y_hat, y, num_classes=2),
+            "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
+            "val_jaccard": multiclass_jaccard_index(y_hat, y, num_classes=2),
         }
 
         self.log_dict(metrics, sync_dist=True)
@@ -74,7 +86,7 @@ class BaseModel(pl.LightningModule):
             return {
                 "optimizer": self.optimizer,
                 "lr_scheduler": self.scheduler,
-                "monitor": "val_dice",
+                "monitor": "val_jaccard",
             }
 
         return self.optimizer
