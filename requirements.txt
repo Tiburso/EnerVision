@@ -17,3 +17,4 @@ rasterio
 transformers
 pycocotools
 unified-focal-loss-pytorch
+git+https://github.com/qubvel/segmentation_models.pytorch
