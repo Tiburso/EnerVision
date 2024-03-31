@@ -30,7 +30,6 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 trainer = Trainer()
 
 trainer.test(model, test_loader)
-trainer.test(model, test_loader)
 
 task = "multiclass"
 num_classes = 2

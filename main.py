@@ -59,9 +59,9 @@ train_dataset = SolarDKDataset(train_folder, transform=train_transform)
 validation_dataset = SolarDKDataset(validation_folder, transform=test_transform)
 test_dataset = SolarDKDataset(test_folder, transform=test_transform)
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4)
 validation_loader = DataLoader(
-    validation_dataset, batch_size=32, shuffle=False, num_workers=4
+    validation_dataset, batch_size=16, shuffle=False, num_workers=4
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
@@ -79,9 +79,7 @@ trainer = pl.Trainer(
     enable_checkpointing=True,
     callbacks=[
         EarlyStopping(monitor="val_loss", patience=10, mode="min", verbose=True),
-        ModelCheckpoint(
-            save_top_k=2, save_last=True, monitor="val_jaccard", mode="max"
-        ),
+        ModelCheckpoint(save_top_k=2, save_last=True, monitor="val_dice", mode="max"),
     ],
 )
 

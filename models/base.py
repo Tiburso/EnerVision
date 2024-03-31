@@ -6,6 +6,7 @@ from torchmetrics.functional.classification import (
     multiclass_recall,
     multiclass_f1_score,
     multiclass_jaccard_index,
+    dice,
 )
 
 
@@ -56,6 +57,7 @@ class BaseModel(pl.LightningModule):
 
         metrics = {
             "val_loss": loss,
+            "val_dice": dice(y_hat, y.int()),
             "val_precision": multiclass_precision(y_hat, y, num_classes=2),
             "val_recall": multiclass_recall(y_hat, y, num_classes=2),
             "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
@@ -77,7 +79,7 @@ class BaseModel(pl.LightningModule):
             return {
                 "optimizer": self.optimizer,
                 "lr_scheduler": self.scheduler,
-                "monitor": "val_jaccard",
+                "monitor": "val_loss",
             }
 
         return self.optimizer
