@@ -9,7 +9,7 @@ from torchmetrics.functional.classification import dice
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # Add EarlyStopping
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 from models.base import BaseModel
 from models.architectures import (
@@ -69,7 +69,7 @@ model = DeepLabModel(num_classes=2, backbone="resnet159")
 
 treshold = 0.5
 loss_fn = AsymmetricUnifiedFocalLoss(delta=0.80)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler, treshold)
@@ -78,7 +78,10 @@ trainer = pl.Trainer(
     min_epochs=10,
     enable_checkpointing=True,
     callbacks=[
-        EarlyStopping(monitor="val_loss", patience=10, mode="min", verbose=True)
+        EarlyStopping(monitor="val_loss", patience=10, mode="min", verbose=True),
+        ModelCheckpoint(
+            save_top_k=2, save_last=True, monitor="val_jaccard", mode="max"
+        ),
     ],
 )
 
