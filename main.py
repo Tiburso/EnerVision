@@ -63,20 +63,20 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=
 model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 treshold = 0.5
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.4, delta=0.9, gamma=0.1)
-optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.4, delta=0.9, gamma=0.3)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
 
 base_model = BaseModel(model, loss_fn, optimizer, treshold=treshold)
 trainer = pl.Trainer(
     max_epochs=150,
-    min_epochs=10,
+    min_epochs=5,
     enable_checkpointing=True,
     callbacks=[
-        EarlyStopping(monitor="val_dice", mode="max", patience=20),
+        EarlyStopping(monitor="val_jaccard", mode="max", patience=5),
         ModelCheckpoint(
             save_top_k=1,
             save_last="link",
-            monitor="val_dice",
+            monitor="val_jaccard",
             mode="max",
             auto_insert_metric_name=True,
         ),

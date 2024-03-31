@@ -1,13 +1,5 @@
 ## Versions
 
-- 206347: 2-class; AUFL; weight - 0.5; delta - 0.85; gamma - 0.2; Backbone - `resnet101` (best)
-- 206356: 2-class; AUFL; weight - 0.2; delta - 0.85; gamma - 0.7: Backbone - `resnet101`
-<!-- - 206410: 2-class; AUFL; weight - 0.5; delta - 0.85; gamma - 0.7: Backbone - `resnet101` -->
-- 206417: 2-class; AUFL; weight - 0.5; delta - 0.75; gamma - 0.2; Backbone - `resnet101`
-- 206430: 2-class; AUFL; weight - 0.5; delta - 0.75; gamma - 0.2; Backbone - `resnet101`
-- 206433: 2-class; AUFL; weight - 0.5; delta - 0.80; gamma - 0.2; Backbone - `resnet101`
-- 206443: 2-class; AUFL; weight - 0.5; delta - 0.85; gamma - 0.4; Backbone - `resnet101`
-- 206455: 2-class; AUFL; weight - 0.4; delta - 0.85; gamma - 0.1; Backbone - `resnet101` (2nd best)
 - 206463: 2-class; AUFL; weight - 0.4; delta - 0.85; gamma - 0.1; Backbone - `resnet101`; lr = 5e-5(reduced_dataset + resize)
   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
   ┃ Test metric ┃ DataLoader 0 ┃
@@ -20,4 +12,17 @@
   │ val_recall │ 0.5823692083358765 │
   └───────────────────────────┴───────────────────────────┘
 
-- 206472: 2-class; AUFL; weight - 0.4; delta - 0.85; gamma - 0.1; Backbone - `resnet159`; lr = 5e-5
+- 206472: 2-class; AUFL; weight - 0.4; delta - 0.9; gamma - 0.1; Backbone - `resnet159`; lr = 5e-5
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Test metric ┃ DataLoader 0 ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ val_dice │ 0.9901595711708069 │
+│ val_f1 │ 0.58010333776474 │
+│ val_jaccard │ 0.5630457401275635 │
+│ val_loss │ 0.17069466412067413 │
+│ val_precision │ 0.5810942649841309 │
+│ val_recall │ 0.5807406902313232 │
+└───────────────────────────┴───────────────────────────┘
+
+- 206477: 2-class; AUFL; weight - 0.4; delta - 0.9; gamma - 0.3; Backbone - `resnet159`; lr = 1e-4, weight_decay = 1e-4
