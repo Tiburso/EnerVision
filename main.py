@@ -60,10 +60,10 @@ validation_loader = DataLoader(
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
-model = DeepLabModel(num_classes=2, backbone="resnet101")
+model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 treshold = 0.5
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.4, delta=0.85, gamma=0.1)
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.4, delta=0.9, gamma=0.1)
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 
 base_model = BaseModel(model, loss_fn, optimizer, treshold=treshold)
