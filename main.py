@@ -92,4 +92,10 @@ trainer.fit(
     validation_loader,
 )
 
+trainer.fit(
+    base_model,
+    train_loader,
+    validation_loader,
+)
+
 trainer.test(base_model, test_loader)

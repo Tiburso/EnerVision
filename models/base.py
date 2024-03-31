@@ -38,7 +38,6 @@ class BaseModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         X, y = batch
-        y = y.argmax(dim=1)
         y_hat = self.forward(X)
 
         loss = self.calculate_loss(y_hat, y)
@@ -49,14 +48,9 @@ class BaseModel(pl.LightningModule):
 
     def validation(self, batch, batch_idx):
         X, y = batch
-
         y_hat = self.forward(X)
 
         loss = self.calculate_loss(y_hat, y)
-
-        # Convert target and prediction to single channel
-        y_hat: torch.Tensor = self.model.target(y_hat)
-        y_hat = y_hat.argmax(dim=1)
 
         # metrics = {
         #     "val_loss": loss,
