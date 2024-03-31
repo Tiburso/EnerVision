@@ -63,12 +63,16 @@ class BaseModel(pl.LightningModule):
         #     "val_dice": dice(y_hat, y.int(), threshold=self.treshold),
         # }
 
+        # Convert target and prediction to single channel
+        y = y.argmax(dim=1)
+        y_hat = y_hat.argmax(dim=1)
+
         metrics = {
             "val_loss": loss,
-            "val_precision": multiclass_precision(y_hat.abs(), y, num_classes=2),
-            "val_recall": multiclass_recall(y_hat.abs(), y, num_classes=2),
-            "val_f1": multiclass_f1_score(y_hat.abs(), y, num_classes=2),
-            "val_jaccard": multiclass_jaccard_index(y_hat.abs(), y, num_classes=2),
+            "val_precision": multiclass_precision(y_hat, y, num_classes=2),
+            "val_recall": multiclass_recall(y_hat, y, num_classes=2),
+            "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
+            "val_jaccard": multiclass_jaccard_index(y_hat, y, num_classes=2),
         }
 
         self.log_dict(metrics, sync_dist=True)
