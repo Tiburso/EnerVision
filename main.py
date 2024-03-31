@@ -77,11 +77,11 @@ trainer = pl.Trainer(
     min_epochs=10,
     enable_checkpointing=True,
     callbacks=[
-        EarlyStopping(monitor="val_jaccard", mode="max", patience=20),
+        EarlyStopping(monitor="val_dice", mode="max", patience=20),
         ModelCheckpoint(
             save_top_k=1,
             save_last="link",
-            monitor="val_jaccard",
+            monitor="val_dice",
             mode="max",
             auto_insert_metric_name=True,
         ),
