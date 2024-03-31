@@ -2,11 +2,6 @@ import pytorch_lightning as pl
 from torch import nn
 import torch
 from torchmetrics.functional.classification import (
-    dice,
-    binary_precision,
-    binary_recall,
-    binary_f1_score,
-    binary_jaccard_index,
     multiclass_precision,
     multiclass_recall,
     multiclass_f1_score,
@@ -54,14 +49,6 @@ class BaseModel(pl.LightningModule):
 
         # Turn the predictions positive
         y_hat: torch.Tensor = self.model.target(y_hat)
-
-        # metrics = {
-        #     "val_loss": loss,
-        #     "val_precision": binary_precision(y_hat, y, threshold=self.treshold),
-        #     "val_recall": binary_recall(y_hat, y, threshold=self.treshold),
-        #     "val_f1": binary_f1_score(y_hat, y, threshold=self.treshold),
-        #     "val_dice": dice(y_hat, y.int(), threshold=self.treshold),
-        # }
 
         # Convert target and prediction to single channel
         y = y.argmax(dim=1)
