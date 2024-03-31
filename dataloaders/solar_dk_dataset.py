@@ -15,6 +15,9 @@ class SolarDKDataset(Dataset):
         self.positive_files = os.listdir(os.path.join(image_dir, "positive"))
         self.negative_files = os.listdir(os.path.join(image_dir, "negative"))
 
+        # Select only the first 1500 images from the negative folder
+        self.negative_files = self.negative_files[:1500]
+
         # Concat both lists
         self.images = self.positive_files + self.negative_files
 
