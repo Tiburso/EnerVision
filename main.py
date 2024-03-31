@@ -68,7 +68,7 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=
 model = DeepLabModel(num_classes=2, backbone="resnet101")
 
 treshold = 0.5
-loss_fn = AsymmetricUnifiedFocalLoss(delta=0.85)
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.2, delta=0.85, gamma=0.7)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 

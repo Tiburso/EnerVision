@@ -72,7 +72,7 @@ class BaseModel(pl.LightningModule):
             "val_precision": multiclass_precision(y_hat, y, num_classes=2),
             "val_recall": multiclass_recall(y_hat, y, num_classes=2),
             "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
-            "val_jaccard": multiclass_jaccard_index(y_hat, y, num_classes=2),
+            "val_jaccard": multiclass_jaccard_index(y_hat.abs(), y, num_classes=2),
         }
 
         self.log_dict(metrics, sync_dist=True)

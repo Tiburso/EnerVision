@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
 
+from segmentation_models_pytorch.losses import (
+    DiceLoss,
+    FocalLoss,
+    JaccardLoss,
+    SoftCrossEntropyLoss,
+)
 
 # Helper function to enable loss function to be flexibly used for
 # both 2D or 3D image segmentation - source: https://github.com/frankkramer-lab/MIScnn
@@ -253,3 +259,18 @@ class AsymmetricUnifiedFocalLoss(nn.Module):
             return (self.weight * asymmetric_ftl) + ((1 - self.weight) * asymmetric_fl)
         else:
             return asymmetric_ftl + asymmetric_fl
+
+
+class CDhILoss(nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super(CDhILoss, self).__init__()
+        self.dice_loss = DiceLoss(*args, **kwargs)
+        self.iou_loss = JaccardLoss(*args, **kwargs)
+        self.ce_loss = nn.CrossEntropyLoss()
+
+    def forward(self, y_pred, y_true):
+        return (
+            self.ce_loss(y_pred, y_true)
+            + 2 * self.dice_loss(y_pred, y_true)
+            + 2 * self.iou_loss(y_pred, y_true)
+        )
