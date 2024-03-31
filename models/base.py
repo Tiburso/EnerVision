@@ -53,7 +53,7 @@ class BaseModel(pl.LightningModule):
         loss = self.calculate_loss(y_hat, y)
 
         # Turn the predictions positive
-        y_hat = self.model.target(y_hat)
+        y_hat: torch.Tensor = self.model.target(y_hat)
 
         # metrics = {
         #     "val_loss": loss,
@@ -65,10 +65,10 @@ class BaseModel(pl.LightningModule):
 
         metrics = {
             "val_loss": loss,
-            "val_precision": multiclass_precision(y_hat, y, num_classes=2),
-            "val_recall": multiclass_recall(y_hat, y, num_classes=2),
-            "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
-            "val_jaccard": multiclass_jaccard_index(y_hat, y, num_classes=2),
+            "val_precision": multiclass_precision(y_hat.abs(), y, num_classes=2),
+            "val_recall": multiclass_recall(y_hat.abs(), y, num_classes=2),
+            "val_f1": multiclass_f1_score(y_hat.abs(), y, num_classes=2),
+            "val_jaccard": multiclass_jaccard_index(y_hat.abs(), y, num_classes=2),
         }
 
         self.log_dict(metrics, sync_dist=True)
