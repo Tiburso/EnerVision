@@ -8,6 +8,9 @@ from torchmetrics.functional.classification import dice
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+# Add EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping
+
 from models.base import BaseModel
 from models.architectures import (
     DeepLabModel,
@@ -79,6 +82,9 @@ trainer = pl.Trainer(
     max_epochs=150,
     min_epochs=10,
     enable_checkpointing=True,
+    callbacks=[
+        EarlyStopping(monitor="val_loss", patience=10, mode="min", verbose=True)
+    ],
 )
 
 trainer.fit(
