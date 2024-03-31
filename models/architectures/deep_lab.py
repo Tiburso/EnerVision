@@ -15,7 +15,7 @@ class DeepLabModel(nn.Module):
         )
 
     def forward(self, x):
-        x = self.model(x)["out"]
+        x = self.model(x)
         return x
 
     def target(self, y):

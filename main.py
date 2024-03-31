@@ -66,19 +66,14 @@ validation_loader = DataLoader(
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
 model = DeepLabModel(num_classes=2, backbone="resnet101")
-# model = FCNResNetModel(num_classes=1, backbone="resnet50")
-# model = MaskRCNNModel(num_classes=1)
-# model = Yolov8Model(num_classes=1)
 
 treshold = 0.5
-# loss_fn = CombinedBCEDiceLoss()
 loss_fn = AsymmetricUnifiedFocalLoss(delta=0.85)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler, treshold)
 trainer = pl.Trainer(
-    strategy="ddp_find_unused_parameters_true",
     max_epochs=150,
     min_epochs=10,
     enable_checkpointing=True,
