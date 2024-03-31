@@ -79,7 +79,13 @@ trainer = pl.Trainer(
     enable_checkpointing=True,
     callbacks=[
         EarlyStopping(monitor="val_loss", patience=10, mode="min", verbose=True),
-        ModelCheckpoint(save_top_k=2, save_last=True, monitor="val_dice", mode="max"),
+        ModelCheckpoint(
+            save_top_k=1,
+            save_last="link",
+            monitor="val_dice",
+            mode="max",
+            auto_insert_metric_name=True,
+        ),
     ],
 )
 
