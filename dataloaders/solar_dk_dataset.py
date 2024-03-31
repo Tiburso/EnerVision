@@ -50,6 +50,10 @@ class SolarDKDataset(Dataset):
         image = F.to_image(image)
         mask = F.to_image(mask)
 
+        # Resize both the image and the mask to 512x512
+        image = F.resize(image, (512, 512))
+        mask = F.resize(mask, (512, 512), interpolation=TF.InterpolationMode.NEAREST)
+
         if self.transform is not None:
             image, mask = self.transform(image, mask)
 
@@ -57,6 +61,7 @@ class SolarDKDataset(Dataset):
         image = F.to_dtype(image, torch.float32, scale=True)
         image = normalize(image)
         mask = F.to_dtype(mask, torch.float32, scale=True)
+        print(mask.unique())
 
         mask = torch.cat([1 - mask, mask], dim=0)
 
