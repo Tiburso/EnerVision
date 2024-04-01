@@ -10,7 +10,7 @@ import os
 
 
 class SolarDKDataset(Dataset):
-    def __init__(self, image_dir, transform=None):
+    def __init__(self, image_dir, transform=None, normalize=True):
         # Get all files in the image directory either in the positive or negative folders
         self.positive_files = os.listdir(os.path.join(image_dir, "positive"))
         self.negative_files = os.listdir(os.path.join(image_dir, "negative"))
@@ -21,6 +21,7 @@ class SolarDKDataset(Dataset):
         # Set the image directory
         self.image_dir = image_dir
         self.transform = transform
+        self.normalize = normalize
 
     def __len__(self):
         return len(self.images)
@@ -41,5 +42,10 @@ class SolarDKDataset(Dataset):
 
         if self.transform is not None:
             image, mask = self.transform(image, mask)
+
+            if self.normalize:
+                image = F.normalize(
+                    image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                )
 
         return image, mask

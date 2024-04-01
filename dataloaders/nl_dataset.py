@@ -1,8 +1,7 @@
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from pycocotools.coco import COCO
 from PIL import Image, ImageDraw
-from torchvision import transforms
-from torchvision.transforms import functional as TF
+import torchvision.transforms.v2.functional as F
 import os
 
 from roboflow import Roboflow
@@ -10,7 +9,7 @@ from dotenv import load_dotenv
 
 
 class CocoSegmentationDataset(Dataset):
-    def __init__(self, image_dir, transform=None, download=False):
+    def __init__(self, image_dir, transform=None, normalize=False, download=False):
         if download:
             self.download()
 
@@ -21,6 +20,7 @@ class CocoSegmentationDataset(Dataset):
 
         self.image_ids = self.coco.getImgIds()
         self.transform = transform
+        self.normalize = normalize
 
     def __len__(self):
         return len(self.image_ids)
@@ -34,6 +34,11 @@ class CocoSegmentationDataset(Dataset):
 
         if self.transform is not None:
             image, mask = self.transform(image, mask)
+
+            if self.normalize:
+                image = F.normalize(
+                    image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                )
 
         return image, mask
 

@@ -1,11 +1,11 @@
 from segmentation_models_pytorch import DeepLabV3Plus
-from segmentation_models_pytorch.encoders import get_preprocessing_fn
 from torch import nn
 
 
 class DeepLabModel(nn.Module):
     def __init__(self, num_classes, backbone="resnet50"):
         super().__init__()
+
         self.model = DeepLabV3Plus(
             encoder_name=backbone,
             in_channels=3,
