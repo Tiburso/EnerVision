@@ -10,12 +10,15 @@ from dotenv import load_dotenv
 
 
 class CocoSegmentationDataset(Dataset):
-    def __init__(self, image_dir, annotation_dir, transform=None, download=False):
+    def __init__(self, image_dir, transform=None, download=False):
         if download:
             self.download()
 
-        self.coco = COCO(annotation_dir)
         self.image_dir = image_dir
+
+        annotation_file = os.path.join(image_dir, "_annotations.coco.json")
+        self.coco = COCO(annotation_file)
+
         self.image_ids = self.coco.getImgIds()
         self.transform = transform
 
@@ -43,7 +46,7 @@ class CocoSegmentationDataset(Dataset):
                 ImageDraw.Draw(mask).polygon(ann["segmentation"][0], outline=1, fill=1)
         return mask
 
-    def download():
+    def download(self):
         load_dotenv()
         DATASET_KEY = os.getenv("API_KEY")
 

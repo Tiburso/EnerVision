@@ -42,7 +42,4 @@ class SolarDKDataset(Dataset):
         if self.transform is not None:
             image, mask = self.transform(image, mask)
 
-        # Convert output into two channels
-        mask = torch.cat([1 - mask, mask], dim=0)
-
         return image, mask
