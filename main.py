@@ -88,21 +88,20 @@ test_dataset = SolarDKDataset(
 
 
 ## CREATE THE DATALOADERS
-train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=4)
+train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
 validation_loader = DataLoader(
-    validation_dataset, batch_size=8, shuffle=False, num_workers=4
+    validation_dataset, batch_size=4, shuffle=False, num_workers=4
 )
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
 
 # DEFINE THE MODEL
-model = DeepLabModel(num_classes=1, backbone="resnet152")
+model = DeepLabModel(num_classes=2, backbone="resnet152")
 
-loss_fn = CombinedLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
-scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.25, gamma=2)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 
-base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
+base_model = BaseModel(model, loss_fn, optimizer)
 
 trainer = pl.Trainer(
     max_epochs=150,

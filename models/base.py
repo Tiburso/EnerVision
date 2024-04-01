@@ -47,7 +47,11 @@ class BaseModel(pl.LightningModule):
 
         y_hat = self.forward(X)
 
+        print(y_hat.shape, y.shape)
         loss = self.calculate_loss(y_hat, y)
+
+        # Reconvert into a single channel
+        y = y.argmax(dim=1)
 
         metrics = {
             "jaccard_index": jaccard_index(y_hat, y, task="multiclass", num_classes=2),
