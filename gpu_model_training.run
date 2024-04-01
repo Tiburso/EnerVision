@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 #SBATCH --job-name=train_segmentation_model
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --partition=elec.gpu.q
 #SBATCH --gres=gpu:4
