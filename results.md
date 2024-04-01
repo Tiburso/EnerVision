@@ -38,6 +38,6 @@
 │ val_recall │ 0.587618350982666 │
 └───────────────────────────┴───────────────────────────┘
 
-- 207495: 2-class; AUFL; weight - 0.3; delta - 0.25; gamma - 2.0; Backbone - `resnet159`; lr = 1e-5
+- 207514: 2-class; AUFL; weight - 0.3; delta - 0.25; gamma - 2.0; Backbone - `resnet159`; lr = 1e-5
 
--
+- 207515: 2-class; Combined; Backbone - `resnet159`; lr = 1e-2, weight_decay = 1e-3;
