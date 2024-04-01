@@ -1,11 +1,10 @@
 #!/usr/bin/bash
 
 #SBATCH --job-name=train_segmentation_model
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=4
 #SBATCH --partition=elec.gpu.q
-#SBATCH --gres gpu:4 
-#SBATCH --gpus=4
+#SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task 4
 #SBATCH --error=slurm-%j.err
 #SBATCH --output=slurm-%j.out
