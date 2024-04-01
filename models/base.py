@@ -1,16 +1,11 @@
 import pytorch_lightning as pl
-from torch import nn
-import torch
 from torchmetrics.functional.classification import (
-    multiclass_precision,
-    multiclass_recall,
-    multiclass_f1_score,
-    multiclass_jaccard_index,
+    accuracy,
+    precision,
+    recall,
+    f1_score,
+    jaccard_index,
     dice,
-    binary_precision,
-    binary_recall,
-    binary_f1_score,
-    binary_jaccard_index,
 )
 
 
@@ -32,12 +27,12 @@ class BaseModel(pl.LightningModule):
         return self.model(x)
 
     def calculate_loss(self, y_hat, y):
-        y = self.model.target(y)
-
         return self.loss_fn(y_hat, y)
 
     def training_step(self, batch, batch_idx):
         X, y = batch
+        y = self.model.target(y)
+
         y_hat = self.forward(X)
 
         loss = self.calculate_loss(y_hat, y)
@@ -48,26 +43,19 @@ class BaseModel(pl.LightningModule):
 
     def validation(self, batch, batch_idx):
         X, y = batch
+        y = self.model.target(y)
+
         y_hat = self.forward(X)
 
         loss = self.calculate_loss(y_hat, y)
 
-        # metrics = {
-        #     "val_loss": loss,
-        #     "val_dice": dice(y_hat, y.int()),
-        #     "val_precision": multiclass_precision(y_hat, y, num_classes=2),
-        #     "val_recall": multiclass_recall(y_hat, y, num_classes=2),
-        #     "val_f1": multiclass_f1_score(y_hat, y, num_classes=2),
-        #     "val_jaccard": multiclass_jaccard_index(y_hat, y, num_classes=2),
-        # }
-
         metrics = {
-            "val_loss": loss,
-            "val_dice": dice(y_hat, y.int()),
-            "val_precision": binary_precision(y_hat, y),
-            "val_recall": binary_recall(y_hat, y),
-            "val_f1": binary_f1_score(y_hat, y),
-            "val_jaccard": binary_jaccard_index(y_hat, y),
+            "jaccard_index": jaccard_index(y_hat, y, task="multiclass", num_classes=2),
+            "accuracy": accuracy(y_hat, y, task="multiclass", num_classes=2),
+            "precision": precision(y_hat, y, task="multiclass", num_classes=2),
+            "recall": recall(y_hat, y, task="multiclass", num_classes=2),
+            "f1_score": f1_score(y_hat, y, task="multiclass", num_classes=2),
+            "dice": dice(y_hat, y.int()),
         }
 
         self.log_dict(metrics, sync_dist=True)
