@@ -44,6 +44,10 @@ test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
 train_transform = transforms.Compose(
     [
+        transforms.ToImage(),
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Resize(512, interpolation=transforms.InterpolationMode.NEAREST),
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.RandomRotation(45),

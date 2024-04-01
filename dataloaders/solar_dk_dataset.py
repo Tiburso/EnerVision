@@ -39,26 +39,10 @@ class SolarDKDataset(Dataset):
         else:
             mask = Image.new("L", image.size)
 
-        normalize = transforms.Normalize(
-            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-        )
-
-        # Convert into torch tensor
-        image = F.to_image(image)
-        mask = F.to_image(mask)
-
-        # Resize both the image and the mask to 512x512
-        image = F.resize(image, (512, 512))
-        mask = F.resize(mask, (512, 512), interpolation=TF.InterpolationMode.NEAREST)
-
         if self.transform is not None:
             image, mask = self.transform(image, mask)
 
-        # Apply the normalization
-        image = F.to_dtype(image, torch.float32, scale=True)
-        image = normalize(image)
-        mask = F.to_dtype(mask, torch.float32, scale=True)
-
-        # mask = torch.cat([1 - mask, mask], dim=0)
+        # Convert output into two channels
+        mask = torch.cat([1 - mask, mask], dim=0)
 
         return image, mask

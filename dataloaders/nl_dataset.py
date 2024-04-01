@@ -54,18 +54,4 @@ class CocoSegmentationDataset(Dataset):
             rf = Roboflow(api_key=DATASET_KEY)
             project = rf.workspace("electasolar").project("nl-solar-panel-seg")
             version = project.version(1)
-            dataset = version.download("coco-segmentation")
-
-
-class JointTransform:
-    def __call__(self, image, mask):
-        image = TF.to_tensor(image)
-        mask = TF.to_tensor(mask)
-        return image, mask
-
-
-def create_dataloader(image_dir, annotation_dir, batch_size, shuffle=True):
-    dataset = CocoSegmentationDataset(
-        image_dir, annotation_dir, transform=JointTransform()
-    )
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+            version.download("coco-segmentation")
