@@ -98,8 +98,10 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=
 # DEFINE THE MODEL
 model = DeepLabModel(num_classes=2, backbone="resnet152")
 
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.25, gamma=2)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+# loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.25, gamma=2)
+loss_fn = CombinedLoss()
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
+scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
 
 base_model = BaseModel(model, loss_fn, optimizer)
 
