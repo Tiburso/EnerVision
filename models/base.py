@@ -36,8 +36,20 @@ class BaseModel(pl.LightningModule):
         y_hat = self.forward(X)
 
         loss = self.calculate_loss(y_hat, y)
+        self.log("train_loss", loss, sync_dist=True)
 
-        self.log("train_loss", loss)
+        if batch_idx % 1000 == 0:
+            # Reconvert into a single channel
+            y = y.argmax(dim=1)
+
+            metrics = {
+                "jaccard_index": jaccard_index(
+                    y_hat, y, task="multiclass", num_classes=2
+                ),
+                "dice": dice(y_hat, y.int()),
+            }
+
+            self.log_dict(metrics, sync_dist=True)
 
         return loss
 
@@ -47,7 +59,6 @@ class BaseModel(pl.LightningModule):
 
         y_hat = self.forward(X)
 
-        print(y_hat.shape, y.shape)
         loss = self.calculate_loss(y_hat, y)
 
         # Reconvert into a single channel

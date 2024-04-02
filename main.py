@@ -21,7 +21,6 @@ from models.architectures import (
 
 from dataloaders.solar_dk_dataset import SolarDKDataset
 from dataloaders.nl_dataset import CocoSegmentationDataset
-import torchvision.transforms.v2 as transforms
 
 
 class CombinedLoss(nn.Module):
@@ -49,42 +48,18 @@ nl_train_folder = "data/NL-Solar-Panel-Seg-1/train"
 nl_validation_folder = "data/NL-Solar-Panel-Seg-1/valid"
 nl_test_folder = "data/NL-Solar-Panel-Seg-1/test"
 
-## DEFINE THE TRANSFORMATIONS
-train_transform = transforms.Compose(
-    [
-        transforms.ToImage(),
-        transforms.ToDtype(torch.float32, scale=True),
-        transforms.Resize(640, interpolation=transforms.InterpolationMode.NEAREST),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-        transforms.RandomRotation(45),
-        transforms.RandomResizedCrop((640, 640), scale=(0.8, 1.0)),
-        transforms.RandomAdjustSharpness(0.5),
-    ]
-)
-
-test_transform = transforms.Compose(
-    [
-        transforms.ToImage(),
-        transforms.ToDtype(torch.float32, scale=True),
-        transforms.Resize(640, interpolation=transforms.InterpolationMode.NEAREST),
-    ]
-)
-
 ## LOAD THE DATASET
-train_dataset = SolarDKDataset(
-    solar_dk_train_folder, transform=train_transform, normalize=True
-) + CocoSegmentationDataset(nl_train_folder, transform=train_transform, normalize=True)
-
-validation_dataset = SolarDKDataset(
-    solar_dk_validation_folder, transform=test_transform, normalize=True
-) + CocoSegmentationDataset(
-    nl_validation_folder, transform=test_transform, normalize=True
+train_dataset = CocoSegmentationDataset(nl_train_folder) + SolarDKDataset(
+    solar_dk_train_folder
 )
 
-test_dataset = SolarDKDataset(
-    solar_dk_test_folder, transform=test_transform, normalize=True
-) + CocoSegmentationDataset(nl_test_folder, transform=test_transform, normalize=True)
+validation_dataset = CocoSegmentationDataset(nl_validation_folder) + SolarDKDataset(
+    solar_dk_validation_folder
+)
+
+test_dataset = CocoSegmentationDataset(nl_test_folder) + SolarDKDataset(
+    solar_dk_test_folder
+)
 
 
 ## CREATE THE DATALOADERS
@@ -99,8 +74,8 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=
 model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 # loss_fn = CombinedLoss()
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.1, gamma=2)
-# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.6, gamma=2)
+# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 # scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
 scheduler = None
@@ -120,6 +95,7 @@ trainer = pl.Trainer(
         ModelCheckpoint(
             save_top_k=1,
             save_last="link",
+            every_n_train_steps=1000,
             monitor="jaccard_index",
             mode="max",
             auto_insert_metric_name=True,
