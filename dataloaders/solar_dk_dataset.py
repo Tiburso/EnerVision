@@ -1,9 +1,6 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
-from PIL import Image, ImageDraw
-from torchvision import transforms
-from torchvision.transforms import functional as TF
-import torchvision.transforms.v2 as transforms
+from torch.utils.data import Dataset
+from PIL import Image
 import torchvision.transforms.v2.functional as F
 
 import os
@@ -21,7 +18,6 @@ class SolarDKDataset(Dataset):
         # Set the image directory
         self.image_dir = image_dir
         self.transform = transform
-        self.normalize = normalize
 
     def __len__(self):
         return len(self.images)
@@ -40,12 +36,20 @@ class SolarDKDataset(Dataset):
         else:
             mask = Image.new("L", image.size)
 
+        image = F.to_image(image)
+        image = F.to_dtype(image, dtype=torch.float32, scale=True)
+        image = F.normalize(
+            image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        )
+
+        mask = F.to_image(mask)
+        mask = F.to_dtype(mask, dtype=torch.float32)
+
+        # Resize them both to 640x640
+        image = F.resize(image, (640, 640))
+        mask = F.resize(mask, (640, 640), interpolation=F.InterpolationMode.NEAREST)
+
         if self.transform is not None:
             image, mask = self.transform(image, mask)
-
-            if self.normalize:
-                image = F.normalize(
-                    image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                )
 
         return image, mask
