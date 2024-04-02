@@ -54,6 +54,7 @@ class BaseModel(pl.LightningModule):
         y = y.argmax(dim=1)
 
         metrics = {
+            "testing_loss": loss,
             "jaccard_index": jaccard_index(y_hat, y, task="multiclass", num_classes=2),
             "accuracy": accuracy(y_hat, y, task="multiclass", num_classes=2),
             "precision": precision(y_hat, y, task="multiclass", num_classes=2),
