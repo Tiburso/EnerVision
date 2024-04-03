@@ -41,3 +41,9 @@
 - 207514: 2-class; AUFL; weight - 0.3; delta - 0.25; gamma - 2.0; Backbone - `resnet159`; lr = 1e-5
 
 - 207515: 2-class; Combined; Backbone - `resnet159`; lr = 1e-2, weight_decay = 1e-3;
+
+- 211504: 2-class; Combined; Backbone - `resnet159`; lr = 1e-4, weight_decay = 1e-3; both datasets
+
+- 211837: 2-class; Combined; Backbone - `resnet159`; lr = 1e-5, weight_decay = 1e-4;
+
+- 212802: 2-class; Combined; Backbone - `resnet159`; lr = 5e-5, weight_decay = 1e-4; solar_dk - 1000 training

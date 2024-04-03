@@ -7,9 +7,9 @@ import pytorch_lightning as pl
 from losses import AsymmetricUnifiedFocalLoss
 
 from segmentation_models_pytorch.losses import DiceLoss, JaccardLoss
-from torchmetrics.functional.classification import dice
+import torchvision.transforms.v2 as transforms
 
-from torch.optim.lr_scheduler import PolynomialLR
+from torch.optim.lr_scheduler import PolynomialLR, ReduceLROnPlateau
 
 # Add EarlyStopping
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -32,6 +32,10 @@ class CombinedLoss(nn.Module):
 
     def forward(self, y_pred, y_true):
         cross_entropy_loss = self.cross_entropy(y_pred, y_true)
+
+        # Convert the y_true from two channels to one channel
+        y_true = y_true.argmax(dim=1)
+
         dice_loss = self.dice_loss(y_pred, y_true)
         jaccard_loss = self.jaccard_loss(y_pred, y_true)
 
@@ -48,18 +52,24 @@ nl_train_folder = "data/NL-Solar-Panel-Seg-1/train"
 nl_validation_folder = "data/NL-Solar-Panel-Seg-1/valid"
 nl_test_folder = "data/NL-Solar-Panel-Seg-1/test"
 
+# Define the transforms
+transform = transforms.Compose(
+    [
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomRotation(degrees=90),
+        transforms.RandomAdjustSharpness(sharpness_factor=2),
+    ]
+)
+
 ## LOAD THE DATASET
-train_dataset = CocoSegmentationDataset(nl_train_folder) + SolarDKDataset(
-    solar_dk_train_folder
+train_dataset = SolarDKDataset(
+    solar_dk_train_folder, total_samples=1000, transform=transform
 )
 
-validation_dataset = CocoSegmentationDataset(nl_validation_folder) + SolarDKDataset(
-    solar_dk_validation_folder
-)
+validation_dataset = SolarDKDataset(solar_dk_validation_folder)
 
-test_dataset = CocoSegmentationDataset(nl_test_folder) + SolarDKDataset(
-    solar_dk_test_folder
-)
+test_dataset = SolarDKDataset(solar_dk_test_folder)
 
 
 ## CREATE THE DATALOADERS
@@ -75,10 +85,9 @@ model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 loss_fn = CombinedLoss()
 # loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.6, gamma=2)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-3)
-# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
-# scheduler = None
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-4)
+# scheduler = PolynomialLR(optimizer, power=0.9, total_iters=3000)
+scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=10)
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
@@ -87,8 +96,8 @@ trainer = pl.Trainer(
     strategy="ddp",
     accelerator="gpu",
     devices=1,
-    max_epochs=15,
-    min_epochs=5,
+    max_epochs=150,
+    min_epochs=50,
     enable_checkpointing=True,
     callbacks=[
         ModelCheckpoint(

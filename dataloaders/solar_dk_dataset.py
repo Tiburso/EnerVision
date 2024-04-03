@@ -7,10 +7,17 @@ import os
 
 
 class SolarDKDataset(Dataset):
-    def __init__(self, image_dir, transform=None, normalize=True):
+    def __init__(
+        self, image_dir, transform=None, normalize=True, total_samples: int = None
+    ):
         # Get all files in the image directory either in the positive or negative folders
         self.positive_files = os.listdir(os.path.join(image_dir, "positive"))
         self.negative_files = os.listdir(os.path.join(image_dir, "negative"))
+
+        if total_samples is not None:
+            self.negative_files = self.negative_files[
+                : total_samples - len(self.positive_files)
+            ]
 
         # Concat both lists
         self.images = self.positive_files + self.negative_files
