@@ -73,12 +73,12 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=
 # DEFINE THE MODEL
 model = DeepLabModel(num_classes=2, backbone="resnet152")
 
-# loss_fn = CombinedLoss()
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.6, gamma=2)
-# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-# scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
-scheduler = None
+loss_fn = CombinedLoss()
+# loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.6, gamma=2)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-3)
+# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+scheduler = PolynomialLR(optimizer, power=0.9, total_iters=100)
+# scheduler = None
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
@@ -88,10 +88,9 @@ trainer = pl.Trainer(
     accelerator="gpu",
     devices=1,
     max_epochs=15,
-    min_epochs=1,
+    min_epochs=5,
     enable_checkpointing=True,
     callbacks=[
-        EarlyStopping(monitor="jaccard_index", mode="max", patience=2),
         ModelCheckpoint(
             save_top_k=1,
             save_last="link",

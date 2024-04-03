@@ -43,10 +43,10 @@ class BaseModel(pl.LightningModule):
             y = y.argmax(dim=1)
 
             metrics = {
-                "jaccard_index": jaccard_index(
+                "train_jaccard": jaccard_index(
                     y_hat, y, task="multiclass", num_classes=2
                 ),
-                "dice": dice(y_hat, y.int()),
+                "train_dice": dice(y_hat, y.int()),
             }
 
             self.log_dict(metrics, sync_dist=True)
