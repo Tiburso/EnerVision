@@ -46,4 +46,4 @@
 
 - 211837: 2-class; Combined; Backbone - `resnet159`; lr = 1e-5, weight_decay = 1e-4;
 
-- 212802: 2-class; Combined; Backbone - `resnet159`; lr = 5e-5, weight_decay = 1e-4; solar_dk - 1000 training
+- 213100: 2-class; Combined; Backbone - `resnet159`; lr = 5e-5, weight_decay = 1e-4; solar_dk - 1000 training

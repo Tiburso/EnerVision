@@ -89,7 +89,7 @@ class BaseModel(pl.LightningModule):
             return {
                 "optimizer": self.optimizer,
                 "lr_scheduler": self.scheduler,
-                "monitor": "val_loss",
+                "monitor": "jaccard_index",
             }
 
         return self.optimizer

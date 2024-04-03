@@ -85,7 +85,7 @@ model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 loss_fn = CombinedLoss()
 # loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.6, gamma=2)
-optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
 # scheduler = PolynomialLR(optimizer, power=0.9, total_iters=3000)
 scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=10)
 
