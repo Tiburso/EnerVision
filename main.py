@@ -93,36 +93,40 @@ base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 #     "lightning_logs/version_211837/checkpoints/last.ckpt"
 # )
 
-nl_trainer = pl.Trainer(
-    num_nodes=1,
-    strategy="ddp",
-    accelerator="gpu",
-    devices=1,
-    max_epochs=10,
-    min_epochs=3,
-    enable_checkpointing=True,
-    callbacks=[
-        ModelCheckpoint(
-            save_top_k=1,
-            save_last="link",
-            every_n_train_steps=1000,
-            monitor="jaccard_index",
-            mode="max",
-            auto_insert_metric_name=True,
-        ),
-    ],
-)
+# nl_trainer = pl.Trainer(
+#     num_nodes=1,
+#     strategy="ddp",
+#     accelerator="gpu",
+#     devices=1,
+#     max_epochs=10,
+#     min_epochs=3,
+#     enable_checkpointing=True,
+#     callbacks=[
+#         ModelCheckpoint(
+#             save_top_k=1,
+#             save_last="link",
+#             every_n_train_steps=1000,
+#             monitor="jaccard_index",
+#             mode="max",
+#             auto_insert_metric_name=True,
+#         ),
+#     ],
+# )
 
 # First iteration of training
-nl_trainer.fit(
-    base_model,
-    nl_train_loader,
-    nl_validation_loader,
-)
+# nl_trainer.fit(
+#     base_model,
+#     nl_train_loader,
+#     nl_validation_loader,
+# )
 
-nl_trainer.test(base_model, nl_test_loader, ckpt_path="best")
+# nl_trainer.test(base_model, nl_test_loader, ckpt_path="best")
 
 # Second iteration of training
+
+base_model = BaseModel.load_from_checkpoint(
+    "lightning_logs/version_222167/checkpoints/best.ckpt"
+)
 
 loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.2, gamma=2)
 base_model.loss_fn = loss_fn
@@ -132,8 +136,8 @@ solar_dk_trainer = pl.Trainer(
     strategy="ddp",
     accelerator="gpu",
     devices=1,
-    max_epochs=150,
-    min_epochs=50,
+    max_epochs=100,
+    min_epochs=30,
     enable_checkpointing=True,
     callbacks=[
         ModelCheckpoint(
@@ -151,7 +155,6 @@ solar_dk_trainer.fit(
     base_model,
     solar_dk_train_loader,
     solar_dk_validation_loader,
-    ckpt_path="best",
 )
 
 solar_dk_trainer.test(base_model, solar_dk_test_loader, ckpt_path="best")

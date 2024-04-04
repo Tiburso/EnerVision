@@ -44,9 +44,22 @@
 
 - 211504: 2-class; Combined; Backbone - `resnet159`; lr = 1e-4, weight_decay = 1e-3; both datasets
 
-- 211837 (stopped but godlike maybe finetune to the other dataset now): 2-class; Combined; Backbone - `resnet159`; lr = 1e-5, weight_decay = 1e-4;
-
-  1. Run with those configs for mega nl-dataset for 5 epochs: 0.777 jaccard
-  2. Finetune to more accurate solar_dk_dataset for 150 epochs
-
 - 213100: 2-class; Combined; Backbone - `resnet159`; lr = 5e-5, weight_decay = 1e-4; solar_dk - 1000 training
+
+- 222167 (stopped but godlike maybe finetune to the other dataset now): 2-class; Combined; Backbone - `resnet159`; lr = 1e-5, weight_decay = 1e-4;
+
+  1. Run with those configs for mega nl-dataset for 5 epochs: 0.881 jaccard
+
+  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃ Test metric ┃ DataLoader 0 ┃
+  ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+  │ accuracy │ 0.9820424318313599 │
+  │ dice │ 0.9820424318313599 │
+  │ f1_score │ 0.9820424318313599 │
+  │ jaccard_index │ 0.8813039064407349 │
+  │ precision │ 0.9820424318313599 │
+  │ recall │ 0.9820424318313599 │
+  │ testing_loss │ 0.6043753027915955 │
+  └───────────────────────────┴───────────────────────────┘
+
+  2. Finetune to more accurate solar_dk_dataset for 150 epochs
