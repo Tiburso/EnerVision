@@ -274,3 +274,22 @@ class CDhILoss(nn.Module):
             + 2 * self.dice_loss(y_pred, y_true)
             + 2 * self.iou_loss(y_pred, y_true)
         )
+
+
+class CombinedLoss(nn.Module):
+    def __init__(self):
+        super(CombinedLoss, self).__init__()
+        self.cross_entropy = nn.CrossEntropyLoss()
+        self.dice_loss = DiceLoss(mode="multiclass")
+        self.jaccard_loss = JaccardLoss(mode="multiclass")
+
+    def forward(self, y_pred, y_true):
+        cross_entropy_loss = self.cross_entropy(y_pred, y_true)
+
+        # Convert the y_true from two channels to one channel
+        y_true = y_true.argmax(dim=1)
+
+        dice_loss = self.dice_loss(y_pred, y_true)
+        jaccard_loss = self.jaccard_loss(y_pred, y_true)
+
+        return cross_entropy_loss + 2 * dice_loss + 3 * jaccard_loss

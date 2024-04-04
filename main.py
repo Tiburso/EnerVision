@@ -4,9 +4,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
-from losses import AsymmetricUnifiedFocalLoss
+from losses import AsymmetricUnifiedFocalLoss, CombinedLoss
 
-from segmentation_models_pytorch.losses import DiceLoss, JaccardLoss
 import torchvision.transforms.v2 as transforms
 
 from torch.optim.lr_scheduler import PolynomialLR, ReduceLROnPlateau
@@ -23,35 +22,12 @@ from dataloaders.solar_dk_dataset import SolarDKDataset
 from dataloaders.nl_dataset import CocoSegmentationDataset
 
 
-class CombinedLoss(nn.Module):
-    def __init__(self):
-        super(CombinedLoss, self).__init__()
-        self.cross_entropy = nn.CrossEntropyLoss()
-        self.dice_loss = DiceLoss(mode="multiclass")
-        self.jaccard_loss = JaccardLoss(mode="multiclass")
-
-    def forward(self, y_pred, y_true):
-        cross_entropy_loss = self.cross_entropy(y_pred, y_true)
-
-        # Convert the y_true from two channels to one channel
-        y_true = y_true.argmax(dim=1)
-
-        dice_loss = self.dice_loss(y_pred, y_true)
-        jaccard_loss = self.jaccard_loss(y_pred, y_true)
-
-        return cross_entropy_loss + 2 * dice_loss + 3 * jaccard_loss
-
-
-## SOLAR DK DATASET
+# SOLAR DK DATASET ---------------------
 solar_dk_train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
 solar_dk_validation_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/val"
 solar_dk_test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 
-## NL DATASET
-nl_train_folder = "data/NL-Solar-Panel-Seg-1/train"
-nl_validation_folder = "data/NL-Solar-Panel-Seg-1/valid"
-nl_test_folder = "data/NL-Solar-Panel-Seg-1/test"
-
+## LOAD THE DATASET
 # Define the transforms
 transform = transforms.Compose(
     [
@@ -62,7 +38,6 @@ transform = transforms.Compose(
     ]
 )
 
-## LOAD THE DATASET
 train_dataset = SolarDKDataset(
     solar_dk_train_folder, total_samples=1000, transform=transform
 )
@@ -73,31 +48,58 @@ test_dataset = SolarDKDataset(solar_dk_test_folder)
 
 
 ## CREATE THE DATALOADERS
-train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
-validation_loader = DataLoader(
+solar_dk_train_loader = DataLoader(
+    train_dataset, batch_size=4, shuffle=True, num_workers=4
+)
+solar_dk_validation_loader = DataLoader(
     validation_dataset, batch_size=4, shuffle=False, num_workers=4
 )
-test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
+solar_dk_test_loader = DataLoader(
+    test_dataset, batch_size=4, shuffle=False, num_workers=4
+)
 
+# NL DATASET ---------------------
+nl_train_folder = "data/NL-Solar-Panel-Seg-1/train"
+nl_validation_folder = "data/NL-Solar-Panel-Seg-1/valid"
+nl_test_folder = "data/NL-Solar-Panel-Seg-1/test"
+
+## LOAD THE DATASET
+nl_train_dataset = CocoSegmentationDataset(nl_train_folder)
+nl_validation_dataset = CocoSegmentationDataset(nl_validation_folder)
+nl_test_dataset = CocoSegmentationDataset(nl_test_folder)
+
+## CREATE THE DATALOADERS
+nl_train_loader = DataLoader(
+    nl_train_dataset, batch_size=4, shuffle=True, num_workers=4
+)
+nl_validation_loader = DataLoader(
+    nl_validation_dataset, batch_size=4, shuffle=False, num_workers=4
+)
+nl_test_loader = DataLoader(nl_test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
 # DEFINE THE MODEL
 model = DeepLabModel(num_classes=2, backbone="resnet152")
 
 loss_fn = CombinedLoss()
 # loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.6, gamma=2)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-3)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 # scheduler = PolynomialLR(optimizer, power=0.9, total_iters=3000)
-scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=10)
+scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.1, patience=10)
+# scheduler = None
 
 base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
-trainer = pl.Trainer(
+# base_model = BaseModel.load_from_checkpoint(
+#     "lightning_logs/version_211837/checkpoints/last.ckpt"
+# )
+
+nl_trainer = pl.Trainer(
     num_nodes=1,
     strategy="ddp",
     accelerator="gpu",
     devices=1,
-    max_epochs=150,
-    min_epochs=50,
+    max_epochs=10,
+    min_epochs=3,
     enable_checkpointing=True,
     callbacks=[
         ModelCheckpoint(
@@ -111,10 +113,45 @@ trainer = pl.Trainer(
     ],
 )
 
-trainer.fit(
+# First iteration of training
+nl_trainer.fit(
     base_model,
-    train_loader,
-    validation_loader,
+    nl_train_loader,
+    nl_validation_loader,
 )
 
-trainer.test(base_model, test_loader)
+nl_trainer.test(base_model, nl_test_loader, ckpt_path="best")
+
+# Second iteration of training
+
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.2, gamma=2)
+base_model.loss_fn = loss_fn
+
+solar_dk_trainer = pl.Trainer(
+    num_nodes=1,
+    strategy="ddp",
+    accelerator="gpu",
+    devices=1,
+    max_epochs=150,
+    min_epochs=50,
+    enable_checkpointing=True,
+    callbacks=[
+        ModelCheckpoint(
+            save_top_k=1,
+            save_last="link",
+            every_n_train_steps=100,
+            monitor="jaccard_index",
+            mode="max",
+            auto_insert_metric_name=True,
+        ),
+    ],
+)
+
+solar_dk_trainer.fit(
+    base_model,
+    solar_dk_train_loader,
+    solar_dk_validation_loader,
+    ckpt_path="best",
+)
+
+solar_dk_trainer.test(base_model, solar_dk_test_loader, ckpt_path="best")

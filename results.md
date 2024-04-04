@@ -44,6 +44,9 @@
 
 - 211504: 2-class; Combined; Backbone - `resnet159`; lr = 1e-4, weight_decay = 1e-3; both datasets
 
-- 211837: 2-class; Combined; Backbone - `resnet159`; lr = 1e-5, weight_decay = 1e-4;
+- 211837 (stopped but godlike maybe finetune to the other dataset now): 2-class; Combined; Backbone - `resnet159`; lr = 1e-5, weight_decay = 1e-4;
+
+  1. Run with those configs for mega nl-dataset for 5 epochs: 0.777 jaccard
+  2. Finetune to more accurate solar_dk_dataset for 150 epochs
 
 - 213100: 2-class; Combined; Backbone - `resnet159`; lr = 5e-5, weight_decay = 1e-4; solar_dk - 1000 training
