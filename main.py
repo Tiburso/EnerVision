@@ -125,11 +125,15 @@ base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 # Second iteration of training
 
 base_model = BaseModel.load_from_checkpoint(
-    "lightning_logs/version_222167/checkpoints/best.ckpt"
+    "lightning_logs/version_222167/checkpoints/last.ckpt"
 )
 
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.3, delta=0.2, gamma=2)
-base_model.loss_fn = loss_fn
+loss_fn = AsymmetricUnifiedFocalLoss(weight=0.5, delta=0.6, gamma=2)
+optimzer = torch.optim.AdamW(base_model.model.parameters(), lr=1e-8)
+scheduler = ReduceLROnPlateau(optimzer, mode="max", factor=0.01, patience=5)
+
+base_model.optimizer = optimzer
+base_model.scheduler = scheduler
 
 solar_dk_trainer = pl.Trainer(
     num_nodes=1,
@@ -150,6 +154,8 @@ solar_dk_trainer = pl.Trainer(
         ),
     ],
 )
+
+solar_dk_trainer.ckpt_path = "lightning_logs/version_222167/checkpoints/last.ckpt"
 
 solar_dk_trainer.fit(
     base_model,
