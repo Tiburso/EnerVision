@@ -5,6 +5,12 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
 from losses import AsymmetricUnifiedFocalLoss, CombinedLoss
+from segmentation_models_pytorch.losses import (
+    DiceLoss,
+    FocalLoss,
+    JaccardLoss,
+    SoftCrossEntropyLoss,
+)
 
 import torchvision.transforms.v2 as transforms
 
@@ -124,19 +130,28 @@ base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
 # Second iteration of training
 
-loss_fn = AsymmetricUnifiedFocalLoss(weight=0.7, delta=0.2, gamma=2)
 
 base_model = BaseModel.load_from_checkpoint(
     "lightning_logs/version_222167/checkpoints/last.ckpt",
-    hparams_file="lightning_logs/version_222167/hparams.yaml",
-    loss_fn=loss_fn,
 )
 
-optimzer = torch.optim.AdamW(base_model.model.parameters(), lr=1e-10)
-scheduler = ReduceLROnPlateau(optimzer, mode="max", factor=0.01, patience=5)
+model = base_model.model
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.01, patience=5)
 
-base_model.optimizer = optimzer
-base_model.scheduler = scheduler
+
+class LossJaccard(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.loss = JaccardLoss(mode="multiclass")
+
+    def forward(self, y_hat, y):
+        y = y.argmax(dim=1)
+        return self.loss(y_hat, y)
+
+
+loss_fn = LossJaccard()
+base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
 solar_dk_trainer = pl.Trainer(
     num_nodes=1,
@@ -164,4 +179,4 @@ solar_dk_trainer.fit(
     solar_dk_validation_loader,
 )
 
-solar_dk_trainer.test(base_model, solar_dk_test_loader, ckpt_path="best")
+solar_dk_trainer.test(base_model, solar_dk_test_loader)
