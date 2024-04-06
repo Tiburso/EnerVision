@@ -137,7 +137,7 @@ base_model = BaseModel.load_from_checkpoint(
 
 model = base_model.model
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.01, patience=5)
+scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.75, patience=5)
 
 
 class LossJaccard(nn.Module):
