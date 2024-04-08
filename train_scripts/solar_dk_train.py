@@ -20,6 +20,16 @@ from models.base import BaseModel
 from dataloaders.solar_dk_dataset import SolarDKDataset
 
 
+class LossJaccard(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.loss = JaccardLoss(mode="multiclass")
+
+    def forward(self, y_hat, y):
+        y = y.argmax(dim=1)
+        return self.loss(y_hat, y)
+
+
 def main(best_model="last"):
     # SOLAR DK DATASET ---------------------
     solar_dk_train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
@@ -76,15 +86,6 @@ def main(best_model="last"):
     model = base_model.model
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
     scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.75, patience=5)
-
-    class LossJaccard(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.loss = JaccardLoss(mode="multiclass")
-
-        def forward(self, y_hat, y):
-            y = y.argmax(dim=1)
-            return self.loss(y_hat, y)
 
     loss_fn = LossJaccard()
     base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
