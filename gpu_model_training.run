@@ -6,8 +6,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task 4
-#SBATCH --error=slurm-%j.err
-#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm_results/slurm-%j.err
+#SBATCH --output=slurm_results/slurm-%j.out
 #SBATCH --time=3-12:00:00
 
 # module load python3
