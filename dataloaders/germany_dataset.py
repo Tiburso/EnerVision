@@ -7,7 +7,7 @@ from PIL import Image
 
 
 class GermanyDataset(Dataset):
-    def __init__(self, folder_path):
+    def __init__(self, folder_path, transform=None):
         self.folder_path = folder_path
 
         google_dir = os.path.join(folder_path, "google")
@@ -17,6 +17,7 @@ class GermanyDataset(Dataset):
         self.ign_images = os.listdir(os.path.join(ign_dir, "img"))
 
         self.dataset = self.google_images + self.ign_images
+        self.transform = transform
 
     def __len__(self):
         return len(self.dataset)
