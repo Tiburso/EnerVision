@@ -17,4 +17,5 @@ source .venv/bin/activate
 
 export PYTHONPATH="$pwd:$PYTHONPATH"
 
-python main.py
+# In the future create three consecutive train scripts for each dataset
+python train_scripts/germany_dataset_train.py

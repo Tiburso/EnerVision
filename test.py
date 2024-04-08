@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from pytorch_lightning import Trainer
 
-from main import CombinedLoss, LossJaccard
+from train_scripts.solar_dk_train import LossJaccard
 
 solar_dk_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 nl_folder = "data/NL-Solar-Panel-Seg-1/test"
@@ -29,4 +29,8 @@ test_dataset = GermanyDataset(germany_folder)
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 trainer = Trainer()
 
-trainer.test(model, test_loader)
+
+model.freeze()
+trainer.test(
+    model, test_loader, ckpt_path="lightning_logs/version_240425/checkpoints/last.ckpt"
+)
