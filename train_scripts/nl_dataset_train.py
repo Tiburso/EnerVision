@@ -51,7 +51,7 @@ base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
 nl_trainer = pl.Trainer(
     num_nodes=1,
-    strategy="ddp",
+    strategy="ddp_spawn",
     accelerator="gpu",
     devices=1,
     max_epochs=10,
