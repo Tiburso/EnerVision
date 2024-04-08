@@ -7,77 +7,26 @@ from models.base import BaseModel
 
 from dataloaders.solar_dk_dataset import SolarDKDataset
 from dataloaders.nl_dataset import CocoSegmentationDataset
+from dataloaders.germany_dataset import GermanyDataset
 
 from torch.utils.data import DataLoader
 
 from pytorch_lightning import Trainer
 
-from torchmetrics.functional import (
-    jaccard_index,
-    accuracy,
-    precision,
-    recall,
-    f1_score,
-    dice,
-)
-
-from main import CombinedLoss
+from main import CombinedLoss, LossJaccard
 
 solar_dk_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
 nl_folder = "data/NL-Solar-Panel-Seg-1/test"
+germany_folder = "data/germany_dataset"
 
 model = BaseModel.load_from_checkpoint(
-    "lightning_logs/version_211837/checkpoints/last.ckpt"
+    "lightning_logs/version_240425/checkpoints/last.ckpt"
 )
 
-test_dataset = SolarDKDataset(solar_dk_folder) + CocoSegmentationDataset(nl_folder)
+# test_dataset = SolarDKDataset(solar_dk_folder) + CocoSegmentationDataset(nl_folder)
+test_dataset = GermanyDataset(germany_folder)
 
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 trainer = Trainer()
 
 trainer.test(model, test_loader)
-
-task = "multiclass"
-num_classes = 2
-
-# # Estimate the model on the test set
-# model.eval()
-# with torch.no_grad():
-#     image, label = next(iter(test_loader))
-
-#     idx = 3
-#     output = model(image)[idx]
-#     label = label[idx]
-
-#     # sigmoid_predictions = torch.sigmoid(output)
-#     # output_predictions = (torch.sigmoid(output) > 0.1).float().squeeze()
-#     output_predictions = output.argmax(dim=0).float().squeeze()
-#     label = label.argmax(dim=0).float().squeeze()
-
-#     print(f"Dice Score: {dice(output_predictions, label.int())}")
-#     print(
-#         f"Jaccard Index: {jaccard_index(output_predictions, label, task=task, num_classes=num_classes)}"
-#     )
-#     print(
-#         f"Accuracy: {accuracy(output_predictions, label, task=task, num_classes=num_classes)}"
-#     )
-#     print(
-#         f"Precision: {precision(output_predictions, label, task=task, num_classes=  num_classes)}"
-#     )
-#     print(
-#         f"Recall: {recall(output_predictions, label, task=task, num_classes=num_classes)}"
-#     )
-#     print(
-#         f"F1 Score: {f1_score(output_predictions, label, task=task, num_classes=num_classes)}"
-#     )
-
-#     plt.subplot(1, 3, 2)
-#     plt.imshow(label, cmap="gray")
-#     plt.title("Label")
-
-#     plt.subplot(1, 3, 3)
-#     r = Image.fromarray(output_predictions.byte().cpu().numpy())
-#     plt.imshow(r, cmap="gray")
-#     plt.title("Output")
-
-#     plt.show()
