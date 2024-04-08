@@ -55,13 +55,29 @@ def main(best_model: str = "last"):
     test_dataset = torch.utils.data.Subset(dataset, test_indices)
 
     ## CREATE THE DATALOADERS
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
-
-    validation_loader = DataLoader(
-        validation_dataset, batch_size=4, shuffle=False, num_workers=4
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=4,
+        shuffle=True,
+        num_workers=4,
+        persistent_workers=True,
     )
 
-    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
+    validation_loader = DataLoader(
+        validation_dataset,
+        batch_size=4,
+        shuffle=False,
+        num_workers=4,
+        persistent_workers=True,
+    )
+
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=4,
+        shuffle=False,
+        num_workers=4,
+        persistent_workers=True,
+    )
 
     # DEFINE THE MODEL
     base_model = BaseModel.load_from_checkpoint(

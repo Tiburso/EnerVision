@@ -35,13 +35,25 @@ def main():
 
     ## CREATE THE DATALOADERS
     nl_train_loader = DataLoader(
-        nl_train_dataset, batch_size=4, shuffle=True, num_workers=4
+        nl_train_dataset,
+        batch_size=4,
+        shuffle=True,
+        num_workers=4,
+        persistent_workers=True,
     )
     nl_validation_loader = DataLoader(
-        nl_validation_dataset, batch_size=4, shuffle=False, num_workers=4
+        nl_validation_dataset,
+        batch_size=4,
+        shuffle=False,
+        num_workers=4,
+        persistent_workers=True,
     )
     nl_test_loader = DataLoader(
-        nl_test_dataset, batch_size=4, shuffle=False, num_workers=4
+        nl_test_dataset,
+        batch_size=4,
+        shuffle=False,
+        num_workers=4,
+        persistent_workers=True,
     )
 
     # DEFINE THE MODEL

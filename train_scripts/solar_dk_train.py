@@ -47,13 +47,25 @@ def main(best_model="last"):
 
     ## CREATE THE DATALOADERS
     solar_dk_train_loader = DataLoader(
-        train_dataset, batch_size=4, shuffle=True, num_workers=4
+        train_dataset,
+        batch_size=4,
+        shuffle=True,
+        num_workers=4,
+        persistent_workers=True,
     )
     solar_dk_validation_loader = DataLoader(
-        validation_dataset, batch_size=4, shuffle=False, num_workers=4
+        validation_dataset,
+        batch_size=4,
+        shuffle=False,
+        num_workers=4,
+        persistent_workers=True,
     )
     solar_dk_test_loader = DataLoader(
-        test_dataset, batch_size=4, shuffle=False, num_workers=4
+        test_dataset,
+        batch_size=4,
+        shuffle=False,
+        num_workers=4,
+        persistent_workers=True,
     )
 
     # DEFINE THE MODEL
