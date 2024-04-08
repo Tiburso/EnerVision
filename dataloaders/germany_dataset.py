@@ -1,70 +1,57 @@
 import torch
-import cv2
-import numpy as np
-import pandas as pd
-from shapely.geometry import Polygon
+import os
 from torch.utils.data import Dataset
-from torchvision.tv_tensors import BoundingBoxes, Mask
-from torchvision.ops import masks_to_boxes
 
-from image_helpers import polygons_to_masks, polygons_to_bounding_boxes
-
-
-def load_image_and_labels(file):
-    labels = pd.read_csv("germany_dataset/labels/" + file, sep=" ", header=None)
-    labels.columns = ["category", "x_center", "y_center", "x_width", "y_width"]
-
-    # Load the image
-    image_name = file.replace("txt", "tif")
-    image = cv2.imread("germany_dataset/images/" + image_name)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-    # image size = 832 x 832
-    # The x-center and y-center are in the range [0, 1]
-
-    # Create a list of polygons
-    polygons = []
-    for i in range(labels.shape[0]):
-        x_center = labels.iloc[i, 1]
-        y_center = labels.iloc[i, 2]
-        x_width = labels.iloc[i, 3]
-        y_width = labels.iloc[i, 4]
-
-        x1 = (x_center - x_width / 2) * 832
-        x2 = (x_center + x_width / 2) * 832
-        y1 = (y_center - y_width / 2) * 832
-        y2 = (y_center + y_width / 2) * 832
-
-        polygons.append(Polygon([(x1, y1), (x2, y1), (x2, y2), (x1, y2)]))
-
-    return image, polygons
+import torchvision.transforms.v2.functional as F
+from PIL import Image
 
 
 class GermanyDataset(Dataset):
-    def __init__(self, dataset):
-        self.dataset = dataset
+    def __init__(self, folder_path):
+        self.folder_path = folder_path
+
+        google_dir = os.path.join(folder_path, "google")
+        ign_dir = os.path.join(folder_path, "ign")
+
+        self.google_images = os.listdir(os.path.join(google_dir, "img"))
+        self.ign_images = os.listdir(os.path.join(ign_dir, "img"))
+
+        self.dataset = self.google_images + self.ign_images
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        image, polygons = load_image_and_labels(self.dataset[idx])
-        masks = polygons_to_masks(polygons)
-        bboxes = masks_to_boxes(masks)
+        suffix = "google" if self.dataset[idx] in self.google_images else "ign"
 
-        # Normalize image
-        image = image / 255.0
+        # Get the image from the image folder
+        image_path = os.path.join(self.folder_path, suffix, "img", self.dataset[idx])
+        image = Image.open(image_path).convert("RGB")
 
-        # Define the target
-        target = {
-            "boxes": bboxes,
-            "masks": masks,
-            "labels": torch.tensor([1] * len(polygons), dtype=torch.int64),
-            "image_id": torch.tensor([idx]),
-            "area": torch.tensor(
-                [polygon.area for polygon in polygons], dtype=torch.float32
-            ),
-            "iscrowd": torch.tensor([0] * len(polygons), dtype=torch.int64),
-        }
+        # Check if there is a mask in the mask folder
+        try:
+            mask_path = os.path.join(
+                self.folder_path, suffix, "mask", self.dataset[idx]
+            )
+            mask = Image.open(mask_path).convert("L")
+        except FileNotFoundError:
+            # If no mask is found generate an empty mask
+            mask = Image.new("L", image.size)
 
-        return torch.tensor(image, dtype=torch.float32).view(3, 832, 832), target
+        image = F.to_image(image)
+        image = F.to_dtype(image, dtype=torch.float32, scale=True)
+        image = F.normalize(
+            image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        )
+
+        mask = F.to_image(mask)
+        mask = F.to_dtype(mask, dtype=torch.float32)
+
+        # Resize them both to 640x640
+        image = F.resize(image, (640, 640))
+        mask = F.resize(mask, (640, 640), interpolation=F.InterpolationMode.NEAREST)
+
+        if self.transform is not None:
+            image, mask = self.transform(image, mask)
+
+        return image, mask
