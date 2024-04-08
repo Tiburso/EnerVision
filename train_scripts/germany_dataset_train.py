@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
 from losses import CombinedLoss
+from train_scripts.solar_dk_train import LossJaccard
+
 import torchvision.transforms.v2 as transforms
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -14,6 +16,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from models.base import BaseModel
 
 from dataloaders.germany_dataset import GermanyDataset
+
+from sklearn.model_selection import train_test_split
 
 torch.manual_seed(0)
 torch.set_num_threads(4)
@@ -36,21 +40,26 @@ transform = transforms.Compose(
 dataset = GermanyDataset(germany_folder, transform=transform)
 
 # Create a train, validation and test set
-train_dataset, validation_dataset, test_dataset = torch.utils.data.random_split(
-    dataset, [int(0.7 * len(dataset)), int(0.2 * len(dataset)), int(0.1 * len(dataset))]
+train_indices, test_indices = train_test_split(
+    range(len(dataset)), test_size=0.2, random_state=0
 )
 
+train_indices, validation_indices = train_test_split(
+    train_indices, test_size=0.2, random_state=0
+)
+
+train_dataset = torch.utils.data.Subset(dataset, train_indices)
+validation_dataset = torch.utils.data.Subset(dataset, validation_indices)
+test_dataset = torch.utils.data.Subset(dataset, test_indices)
 
 ## CREATE THE DATALOADERS
-solar_dk_train_loader = DataLoader(
-    train_dataset, batch_size=4, shuffle=True, num_workers=4
-)
-solar_dk_validation_loader = DataLoader(
+train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
+
+validation_loader = DataLoader(
     validation_dataset, batch_size=4, shuffle=False, num_workers=4
 )
-solar_dk_test_loader = DataLoader(
-    test_dataset, batch_size=4, shuffle=False, num_workers=4
-)
+
+test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
 
 # DEFINE THE MODEL
 base_model = BaseModel.load_from_checkpoint(
@@ -86,8 +95,8 @@ solar_dk_trainer = pl.Trainer(
 
 solar_dk_trainer.fit(
     base_model,
-    solar_dk_train_loader,
-    solar_dk_validation_loader,
+    train_loader,
+    validation_loader,
 )
 
-solar_dk_trainer.test(base_model, solar_dk_test_loader)
+solar_dk_trainer.test(base_model, test_loader)
