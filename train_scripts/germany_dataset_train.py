@@ -84,7 +84,7 @@ def main(best_model: str = "last"):
     model = base_model.model
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-6)
     scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.1, patience=5)
-    loss_fn = LossJaccard()
+    loss_fn = CombinedLoss()
 
     base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
@@ -92,7 +92,7 @@ def main(best_model: str = "last"):
         num_nodes=1,
         strategy="auto",
         accelerator="gpu",
-        devices=2,
+        devices=1,
         max_epochs=150,
         min_epochs=30,
         enable_checkpointing=True,

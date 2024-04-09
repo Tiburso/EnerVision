@@ -3,8 +3,8 @@
 #SBATCH --job-name=train_segmentation_model
 #SBATCH --nodes=1
 #SBATCH --partition=elec.gpu.q
-#SBATCH --gres=gpu:2
-#SBATCH --ntasks-per-node=2
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task 4
 #SBATCH --error=slurm_results/slurm-%j.err
 #SBATCH --output=slurm_results/slurm-%j.out

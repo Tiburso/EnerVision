@@ -88,3 +88,7 @@
   │ recall │ 0.997889518737793 │
   │ testing_loss │ 0.011348080821335316 │
   └───────────────────────────┴───────────────────────────┘
+
+- 251115 (Not finished but 0.93 IOU validation)
+
+- 251386 FocalLoss / 251495 CombinedLoss
