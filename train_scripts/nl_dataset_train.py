@@ -67,7 +67,7 @@ def main():
 
     nl_trainer = pl.Trainer(
         num_nodes=1,
-        strategy="ddp_spawn",
+        strategy="auto",
         accelerator="gpu",
         devices=1,
         max_epochs=10,

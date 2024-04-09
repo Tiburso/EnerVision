@@ -19,9 +19,6 @@ from dataloaders.germany_dataset import GermanyDataset
 
 from sklearn.model_selection import train_test_split
 
-torch.manual_seed(0)
-torch.set_num_threads(4)
-
 
 def main(best_model: str = "last"):
     # GERMANY DATASET ---------------------
@@ -85,17 +82,17 @@ def main(best_model: str = "last"):
     )
 
     model = base_model.model
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.2, patience=5)
-    loss_fn = CombinedLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-6)
+    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.1, patience=5)
+    loss_fn = LossJaccard()
 
     base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
     solar_dk_trainer = pl.Trainer(
         num_nodes=1,
-        strategy="ddp_spawn",
+        strategy="auto",
         accelerator="gpu",
-        devices=1,
+        devices=2,
         max_epochs=150,
         min_epochs=30,
         enable_checkpointing=True,
@@ -126,5 +123,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--best_model", type=str, default="last")
+
+    torch.manual_seed(0)
+    torch.set_num_threads(4)
 
     main(parser.parse_args().best_model)

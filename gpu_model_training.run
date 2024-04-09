@@ -3,8 +3,8 @@
 #SBATCH --job-name=train_segmentation_model
 #SBATCH --nodes=1
 #SBATCH --partition=elec.gpu.q
-#SBATCH --gres=gpu:1
-#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:2
+#SBATCH --ntasks-per-node=2
 #SBATCH --cpus-per-task 4
 #SBATCH --error=slurm_results/slurm-%j.err
 #SBATCH --output=slurm_results/slurm-%j.out
@@ -18,6 +18,4 @@ source .venv/bin/activate
 export PYTHONPATH="$pwd:$PYTHONPATH"
 
 # In the future create three consecutive train scripts for each dataset
-python train_scripts/nl_dataset_train.py
-python train_scripts/solar_dk_train.py --best_model %j
-python train_scripts/germany_dataset_train.py --best_model %j
+python train_scripts/germany_dataset_train.py --best_model 240425
