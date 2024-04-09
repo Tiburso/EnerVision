@@ -85,7 +85,7 @@ def main(best_model="last"):
 
     model = base_model.model
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.75, patience=5)
+    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=5)
 
     loss_fn = LossJaccard()
     base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
@@ -114,9 +114,10 @@ def main(best_model="last"):
         base_model,
         solar_dk_train_loader,
         solar_dk_validation_loader,
+        ckpt_path=f"lightning_logs/version_{best_model}/checkpoints/last.ckpt",
     )
 
-    solar_dk_trainer.test(base_model, solar_dk_test_loader)
+    solar_dk_trainer.test(base_model, solar_dk_test_loader, ckpt_path="best")
 
 
 if __name__ == "__main__":

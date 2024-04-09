@@ -18,4 +18,4 @@ source .venv/bin/activate
 export PYTHONPATH="$pwd:$PYTHONPATH"
 
 # In the future create three consecutive train scripts for each dataset
-python train_scripts/germany_dataset_train.py --best_model 240425
+python train_scripts/solar_dk_train.py --best_model 251115
