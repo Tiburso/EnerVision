@@ -4,6 +4,8 @@ import pvlib
 from pvlib import location, irradiance, temperature, pvsystem
 from random import choice, randint, seed
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
 
 
 def load_weather_data(file_path):
@@ -122,6 +124,94 @@ def plot_energy_outputs(energy_outputs):
     plt.grid(True)
     plt.show()
 
+def plot_energy_outputs_with_gaussians(energy_outputs, x_values, fitted_curves):
+    """Plot the energy outputs over time for all panels and overlay Gaussian curves."""
+    plt.figure(figsize=(12, 8))
+    
+    # Get the number of panels
+    num_panels = len(energy_outputs.columns) // 4
+    
+    # Iterate over each panel
+    for i in range(num_panels):
+        # Get the energy output for the current panel
+        panel_energy_output = energy_outputs.iloc[:, i*4:(i+1)*4]
+        
+        # Compute the minimum and maximum values for each time step across module types
+        min_values = panel_energy_output.min(axis=1)
+        max_values = panel_energy_output.max(axis=1)
+        mean_values = panel_energy_output.mean(axis=1)
+        
+        # Plot the mean energy output
+        plt.plot(energy_outputs.index, mean_values, label=f'Panel {i+1}')
+        # Plot the filled area between the minimum and maximum values
+        plt.fill_between(energy_outputs.index, min_values, max_values, alpha=0.3)
+    
+    # Plot Gaussian curves
+    for i, curve in enumerate(fitted_curves):
+        plt.plot(x_values, curve, label=f'Gaussian {i+1}', linestyle='--')
+
+    plt.title('Predicted Energy Production Over Time with Gaussian Curves')
+    plt.xlabel('Time')
+    plt.ylabel('Energy Output (Wh)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    
+class EnergyDataset():
+    def __init__(self, weather_data, panels):
+        self.weather_data = weather_data
+        self.panels = panels
+        self.site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Berlin')
+        
+    def __len__(self):
+        return len(self.weather_data)
+    
+    def __getitem__(self, idx):
+        # Get dynamic and static features
+        dynamic_features = self.weather_data.iloc[idx] 
+        static_features = self.panels[idx % len(self.panels)] 
+        # Calculate ground truth labels using pvLib
+        system = get_pv_system(static_features)
+        daily_output = simulate_pv_output(system, self.weather_data.iloc[[idx]], self.site_location)
+        ground_truth = daily_output.values.flatten()
+        return dynamic_features, static_features, ground_truth
+
+
+def fit_gaussian_curve(energy_outputs):
+    """Fit Gaussian curves to the energy output data."""
+    # Define Gaussian function
+    def gaussian(x, amplitude, mean, stddev):
+        return amplitude * np.exp(-((x - mean) / stddev) ** 2)
+
+    # Get number of panels and days
+    num_panels = len(energy_outputs.columns) // 4
+    num_days = len(energy_outputs) // num_panels
+
+    # Initialize arrays to store fitted curve parameters
+    fitted_curves = []
+    x_values = np.arange(num_days)
+
+    # Iterate over panels
+    for i in range(num_panels):
+        # Extract energy output for the current panel
+        panel_energy_output = energy_outputs.iloc[i * num_days: (i + 1) * num_days]
+
+        # Average energy output across module types
+        panel_mean_output = panel_energy_output.mean(axis=1)
+
+        # Initial guess for curve fitting parameters
+        initial_guess = [np.max(panel_mean_output), np.argmax(panel_mean_output), len(panel_mean_output) / 6]  # Amplitude, mean, stddev
+
+        # Fit Gaussian curve to the data
+        popt, _ = curve_fit(gaussian, x_values, panel_mean_output, p0=initial_guess)
+
+        # Generate y values for the fitted curve
+        fitted_curve = gaussian(x_values, *popt)
+        fitted_curves.append(fitted_curve)
+
+    return x_values, fitted_curves
+
 if __name__ == "__main__":
     # Load weather data
     weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
@@ -152,3 +242,9 @@ if __name__ == "__main__":
 
     # Plot energy outputs
     plot_energy_outputs(energy_outputs)
+
+    # Fit Gaussian curve to daily weather prediction
+    x_values, fitted_curve = fit_gaussian_curve(energy_outputs)
+
+    # Plot energy outputs with Gaussian curves
+    plot_energy_outputs_with_gaussians(energy_outputs, x_values, fitted_curves)
