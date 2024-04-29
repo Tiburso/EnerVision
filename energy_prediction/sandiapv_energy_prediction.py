@@ -244,7 +244,7 @@ if __name__ == "__main__":
     plot_energy_outputs(energy_outputs)
 
     # Fit Gaussian curve to daily weather prediction
-    x_values, fitted_curve = fit_gaussian_curve(energy_outputs)
+    #x_values, fitted_curve = fit_gaussian_curve(energy_outputs)
 
     # Plot energy outputs with Gaussian curves
-    plot_energy_outputs_with_gaussians(energy_outputs, x_values, fitted_curves)
+    #plot_energy_outputs_with_gaussians(energy_outputs, x_values, fitted_curves)

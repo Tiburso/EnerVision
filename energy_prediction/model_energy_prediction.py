@@ -15,7 +15,7 @@ class EnergyPredictionModel(nn.Module):
         self.fc = nn.Linear(hidden_size + static_feature_size, 2)  
     
     def forward(self, dynamic_features, static_features):
-        # Pass dynamic features through LSTM
+        # Pass dynaamic features through LSTM
         _, (h_n, _) = self.dynamic_rnn(dynamic_features)
         h_n = h_n.squeeze(0)  # Remove the batch dimension
         
