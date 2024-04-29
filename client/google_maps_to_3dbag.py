@@ -81,21 +81,35 @@ def pixels_to_lat_lng(center: str, pixel: tuple):
     return pointLat, pointLng
 
 
-def get_3dbag_information(coords: tuple):
+def lat_lng_to_amerfoort_rd(coords: tuple):
+    # The default coordinate reference system is Amersfoort / RD New + NAP height,
+    # EPSG:7415 (https://www.opengis.net/def/crs/EPSG/0/7415)
+    # bbox is a list of 4 coordinates (min x min y max x max y)
     wgs84 = CRS("EPSG:4326")
     rd_new = CRS("EPSG:7415")
 
     # Create a transformer
     transformer = Transformer.from_crs(wgs84, rd_new)
 
-    url = "https://api.3dbag.nl/api.3dbag.nl/collections/pand/items"
-
-    # The default coordinate reference system is Amersfoort / RD New + NAP height,
-    # EPSG:7415 (https://www.opengis.net/def/crs/EPSG/0/7415)
-    # bbox is a list of 4 coordinates (min x min y max x max y)
     x, y = transformer.transform(coords[0], coords[1])
 
     return x, y
+
+
+def get_3dbag_information(bbox: list):
+    url = "https://api.3dbag.nl//collections/pand/items"
+
+    # Convert bbox into array of numbers and then add it into the url
+    bbox = ",".join(map(str, bbox))
+    url += f"?bbox={bbox}"
+
+    res = requests.get(url)
+
+    res.raise_for_status()
+
+    data = res.json()
+
+    return data["features"]
 
 
 if __name__ == "__main__":
@@ -107,8 +121,26 @@ if __name__ == "__main__":
     image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
 
     # Run the machine learning model here
+    lower_left = pixels_to_lat_lng(center, (0, IMAGE_SIZE))
+    upper_right = pixels_to_lat_lng(center, (IMAGE_SIZE, 0))
 
-    # Get the coordinates of the center of the image
-    lat, long = pixels_to_lat_lng(center, (IMAGE_SIZE // 2 + 10, IMAGE_SIZE // 2 - 10))
+    # Only features that have a geometry that intersects the
+    # bounding box are selected. The bounding box is provided as four numbers:
+    #
+    # Lower left corner, coordinate axis 1 (min. x)
+    # Lower left corner, coordinate axis 2 (min. y)
+    # Upper right corner, coordinate axis 1 (max. x)
+    # Upper right corner, coordinate axis 2 (max. y)
+    new_lower_left = lat_lng_to_amerfoort_rd(lower_left)
+    new_upper_right = lat_lng_to_amerfoort_rd(upper_right)
 
-    print(lat, long)
+    bbox = [
+        new_lower_left[0],
+        new_lower_left[1],
+        new_upper_right[0],
+        new_upper_right[1],
+    ]
+
+    data = get_3dbag_information(bbox)
+
+    print(data[0]["CityObjects"][list(data[0]["CityObjects"].keys())[0]])
