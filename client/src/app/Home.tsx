@@ -4,13 +4,16 @@ import {
     MarkerF,
     CircleF,
   } from '@react-google-maps/api';
+
   import type { NextPage } from 'next';
   import { useMemo, useState } from 'react';
+
   import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
   } from 'use-places-autocomplete';
-  import styles from '../styles/Home.module.css';
+
+  import styles from './Home.module.css';
   
   const Home: NextPage = () => {
     const [lat, setLat] = useState(27.672932021393862);
@@ -39,6 +42,7 @@ import {
   
     return (
       <div className={styles.homeWrapper}>
+        
         <div className={styles.sidebar}>
           {/* render Places Auto Complete and pass custom handler which updates the state */}
           <PlacesAutocomplete
@@ -52,6 +56,7 @@ import {
             }}
           />
         </div>
+
         <GoogleMap
           options={mapOptions}
           zoom={14}
