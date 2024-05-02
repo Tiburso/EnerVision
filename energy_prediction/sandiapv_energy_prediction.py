@@ -94,39 +94,7 @@ def simulate_pv_output(system, weather_data, location):
         output_data[array.name] = dc_output
     
     return output_data
-"""
-def plot_energy_outputs(energy_outputs, days_to_plot=3):
-    plt.figure(figsize=(12, 8))
-    
-    # Determine the range of days to plot
-    if days_to_plot is not None:
-        energy_outputs = energy_outputs.iloc[:(days_to_plot*24)]
-    
-    # Get the number of panels
-    num_panels = len(energy_outputs.columns) // 4
-    
-    # Iterate over each panel
-    for i in range(num_panels):
-        # Get the energy output for the current panel
-        panel_energy_output = energy_outputs.iloc[:, i*4:(i+1)*4]
-        
-        # Compute the minimum and maximum values for each time step across module types
-        min_values = panel_energy_output.min(axis=1)
-        max_values = panel_energy_output.max(axis=1)
-        mean_values = panel_energy_output.mean(axis=1)
-        
-        # Plot the mean energy output
-        plt.plot(energy_outputs.index[:len(mean_values)], mean_values, label=f'Panel {i+1}')
-        # Plot the filled area between the minimum and maximum values
-        plt.fill_between(energy_outputs.index[:len(min_values)], min_values, max_values, alpha=0.3, label=f'Panel {i+1} Range')
-    
-    plt.title('Predicted Energy Production Over Time')
-    plt.xlabel('Time')
-    plt.ylabel('Energy Output (Wh)')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-"""
+
 def fit_gaussian_to_daily_data(daily_data):
     x_numeric = np.arange(len(daily_data))
     popt, _ = curve_fit(gaussian, x_numeric, daily_data, p0=[max(daily_data), np.argmax(daily_data), 1])
@@ -249,8 +217,8 @@ if __name__ == "__main__":
             'panel_type': panel['type'],
             'tilt': panel['tilt'],
             'azimuth': panel['azimuth'],
-            'daily_output': daily_output.resample('D').sum()  # Sum daily output
-        })
+            'daily_output': daily_output.resample('D').sum()  
+             })
         for column in daily_output.columns:
             energy_outputs[f'{column}_Panel_{i+1}'] = daily_output[column]
     energy_outputs.to_csv('energy_prediction/energy_data/energy_output.csv', sep=',', index=True)
@@ -258,5 +226,5 @@ if __name__ == "__main__":
     # Plot energy outputs
     plot_energy_outputs(energy_outputs)
     # Assume weather_data and panels are already loaded and processed
-    #prepared_data = prepare_data_for_model(energy_outputs, weather_data, panels)
-    #prepared_data.to_csv('energy_prediction/energy_data/model_input.csv', index=False)
+    prepared_data = prepare_data_for_model(energy_outputs, weather_data, panels)
+    prepared_data.to_csv('energy_prediction/energy_data/model_input.csv', index=False)
