@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
+import pvlib
 from pvlib import location, irradiance, temperature, pvsystem
 from random import choice, randint, seed
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from scipy.integrate import trapz
+
 
 
 def load_weather_data(file_path):
@@ -61,8 +62,8 @@ def get_pv_system(panel):
 def simulate_pv_output(system, weather_data, location):
     """ Simulate daily PV output for all arrays in the system. """
     solar_position = location.get_solarposition(weather_data.index)
-    temp_air = weather_data['T']
-    wind_speed = weather_data['FH']
+    temp_air = weather_data['temp_air']
+    wind_speed = weather_data['wind_speed']
     
     # Initialize an empty DataFrame to store the output for each array
     output_data = pd.DataFrame(index=weather_data.index)
@@ -76,10 +77,9 @@ def simulate_pv_output(system, weather_data, location):
         aoi = irradiance.aoi(array.mount.surface_tilt, array.mount.surface_azimuth, solar_position['apparent_zenith'], solar_position['azimuth'])
         poa_irrad = irradiance.get_total_irradiance(array.mount.surface_tilt, array.mount.surface_azimuth,
                                                     solar_position['apparent_zenith'], solar_position['azimuth'],
-                                                    weather_data['dni'], weather_data['Q'], weather_data['dhi'])
+                                                    weather_data['dni'], weather_data['ghi'], weather_data['dhi'])
         # Calculate cell temperature
-        cell_temperature = temperature.sapm_cell(poa_irrad['poa_global'], temp_air, wind_speed,
-                                                  **array.temperature_model_parameters)
+        cell_temperature = temperature.sapm_cell(poa_irrad['poa_global'], temp_air, wind_speed, **array.temperature_model_parameters)
         single_array_system = pvsystem.PVSystem(
                              name=system.name,
                             arrays=[system.arrays[0]],
@@ -106,105 +106,101 @@ def gaussian(x, a, b, c):
 def plot_energy_outputs(energy_outputs, days_to_plot=3):
     plt.figure(figsize=(12, 8))
     
-    if not isinstance(energy_outputs.index, pd.DatetimeIndex):
-        energy_outputs.index = pd.to_datetime(energy_outputs.index)
-
-    colors = ['red', 'blue', 'green'] 
-    colors2 = ['orange', 'purple', 'yellow']
-
+    # Get the number of panels
     num_panels = len(energy_outputs.columns) // 4
-    areas = []
+    
+    # Iterate over each panel
     for i in range(num_panels):
+        # Get the energy output for the current panel
         panel_energy_output = energy_outputs.iloc[:, i*4:(i+1)*4]
+        
+        # Compute the minimum and maximum values for each time step across module types
+        min_values = panel_energy_output.min(axis=1)
+        max_values = panel_energy_output.max(axis=1)
+        mean_values = panel_energy_output.mean(axis=1)
+        
+        # Plot the mean energy output
+        plt.plot(energy_outputs.index, mean_values, label=f'Panel {i+1}')
+        # Plot the filled area between the minimum and maximum values
+        plt.fill_between(energy_outputs.index, min_values, max_values, alpha=0.3)
+    
+    # Plot Gaussian curves
+    for i, curve in enumerate(fitted_curves):
+        plt.plot(x_values, curve, label=f'Gaussian {i+1}', linestyle='--')
 
-        for day in range(days_to_plot):
-            start_idx = day * 24
-            end_idx = (day + 1) * 24
-            daily_data = panel_energy_output.iloc[start_idx:end_idx].mean(axis=1)
-
-            popt = fit_gaussian_to_daily_data(daily_data)
-            if popt is not None:
-                x_dense = np.linspace(0, 23, 500)  
-                gaussian_curve = gaussian(x_dense, *popt)
-
-                # Calculate the area under the Gaussian curve
-                area_gaussian = trapz(gaussian_curve, dx=x_dense[1]-x_dense[0])
-
-                # Calculate the area under the original daily mean data
-                area_original = trapz(daily_data, dx=1) 
-
-                # Calculate the difference in areas
-                area_difference =  area_gaussian/ area_original
-                areas.append(area_difference)
-                x_dense = np.linspace(0, 23, 500) 
-                x_plot = pd.date_range(start=energy_outputs.index[start_idx], periods=24, freq='H')
-                x_plot_dense = pd.date_range(start=x_plot[0], end=x_plot[-1], periods=500)  
-                plt.plot(x_plot_dense, gaussian(x_dense, *popt), color=colors2[i], label=f'Gaussian Panel {i+1}, {area_difference:.2f} Wh', linewidth=2)
-
-
-            # Plot the original daily mean energy data
-            plt.plot(energy_outputs.index[start_idx:end_idx], daily_data,
-                     label=f'Panel {i+1} Mean', linestyle='--', color=colors[i])
-    print(np.mean(np.array(areas)))
-    plt.title('Predicted Energy Production Over Time')
+    plt.title('Predicted Energy Production Over Time with Gaussian Curves')
     plt.xlabel('Time')
     plt.ylabel('Energy Output (Wh)')
     plt.legend()
     plt.grid(True)
-    plt.xticks(rotation=45)
     plt.show()
 
-def prepare_data_for_model(energy_outputs, weather_data, panels):
-    model_data = []
-
-    # Iterate over each panel configuration
-    for i, panel in enumerate(panels):
-        panel_energy_output = energy_outputs.iloc[:, i*4:(i+1)*4]
+    
+class EnergyDataset():
+    def __init__(self, weather_data, panels):
+        self.weather_data = weather_data
+        self.panels = panels
+        self.site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Berlin')
         
-        # Process data day by day
-        for day in range(365):  # Assuming you have a full year of data
-            start_idx = day * 24
-            end_idx = (day + 1) * 24
+    def __len__(self):
+        return len(self.weather_data)
+    
+    def __getitem__(self, idx):
+        # Get dynamic and static features
+        dynamic_features = self.weather_data.iloc[idx] 
+        static_features = self.panels[idx % len(self.panels)] 
+        # Calculate ground truth labels using pvLib
+        system = get_pv_system(static_features)
+        daily_output = simulate_pv_output(system, self.weather_data.iloc[[idx]], self.site_location)
+        ground_truth = daily_output.values.flatten()
+        return dynamic_features, static_features, ground_truth
 
-            # Extract daily weather data and energy outputs
-            daily_weather = weather_data.iloc[start_idx:end_idx]
-            daily_data = panel_energy_output.iloc[start_idx:end_idx].mean(axis=1)
 
-            # Fit Gaussian to daily energy data
-            popt = fit_gaussian_to_daily_data(daily_data)
+def fit_gaussian_curve(energy_outputs):
+    """Fit Gaussian curves to the energy output data."""
+    # Define Gaussian function
+    def gaussian(x, amplitude, mean, stddev):
+        return amplitude * np.exp(-((x - mean) / stddev) ** 2)
 
-            if popt is not None:
-                row = {
-                    'panel_type': panel['type'],
-                    'tilt': panel['tilt'],
-                    'azimuth': panel['azimuth'],
-                    'module_type': panel['module_type'],
-                    # Store sequences as lists in the DataFrame cell
-                    'temperature_sequence': daily_weather['T'].tolist(),
-                    'wind_speed_sequence': daily_weather['FH'].tolist(),
-                    'dni_sequence': daily_weather['dni'].tolist(),
-                    'dhi_sequence': daily_weather['dhi'].tolist(),
-                    'global_irradiance_sequence': daily_weather['Q'].tolist(),
-                    'gaussian': popt.tolist()
-                }
-                model_data.append(row)
+    # Get number of panels and days
+    num_panels = len(energy_outputs.columns) // 4
+    num_days = len(energy_outputs) // num_panels
 
-    return pd.DataFrame(model_data)
+    # Initialize arrays to store fitted curve parameters
+    fitted_curves = []
+    x_values = np.arange(num_days)
 
+    # Iterate over panels
+    for i in range(num_panels):
+        # Extract energy output for the current panel
+        panel_energy_output = energy_outputs.iloc[i * num_days: (i + 1) * num_days]
+
+        # Average energy output across module types
+        panel_mean_output = panel_energy_output.mean(axis=1)
+
+        # Initial guess for curve fitting parameters
+        initial_guess = [np.max(panel_mean_output), np.argmax(panel_mean_output), len(panel_mean_output) / 6]  # Amplitude, mean, stddev
+
+        # Fit Gaussian curve to the data
+        popt, _ = curve_fit(gaussian, x_values, panel_mean_output, p0=initial_guess)
+
+        # Generate y values for the fitted curve
+        fitted_curve = gaussian(x_values, *popt)
+        fitted_curves.append(fitted_curve)
+
+    return x_values, fitted_curves
 
 if __name__ == "__main__":
     # Load weather data
-    #weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
-    weather_data = load_weather_data('energy_prediction/energy_data/output.csv')
-    #weather_data.index = pd.to_datetime(weather_data['date_time'])
-    weather_data.index = pd.to_datetime(weather_data['date_time'], utc=True)
+    weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
+    weather_data.index = pd.to_datetime(weather_data['timestamp'])
     
     # Define location (example: Berlin, Germany)
-    site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Amsterdam')
+    site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Berlin')
 
     # Generate random panels
     seed(0)
-    panels = generate_random_panels(1)
+    panels = generate_random_panels(3)
 
     energy_outputs = pd.DataFrame(index=weather_data.index)
 
@@ -221,8 +217,7 @@ if __name__ == "__main__":
              })
         for column in daily_output.columns:
             energy_outputs[f'{column}_Panel_{i+1}'] = daily_output[column]
-    energy_outputs.to_csv('energy_prediction/energy_data/energy_output.csv', sep=',', index=True)
-    
+
     # Plot energy outputs
     plot_energy_outputs(energy_outputs)
     # Assume weather_data and panels are already loaded and processed
