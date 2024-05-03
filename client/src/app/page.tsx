@@ -1,95 +1,71 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import {
+  useLoadScript,
+  GoogleMap,
+  MarkerF,
+  CircleF,
+} from '@react-google-maps/api';
+
+import { useMemo, useState } from 'react';
+
+import styles from './page.module.css';
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+  const [lat, setLat] = useState(27.672932021393862);
+  const [lng, setLng] = useState(85.31184012689732);
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+  const libraries = useMemo(() => ['places'], []);
+  const mapCenter = useMemo(() => ({ lat: lat, lng: lng }), [lat, lng]);
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+  const mapOptions = useMemo<google.maps.MapOptions>(
+      () => ({
+      disableDefaultUI: true,
+      clickableIcons: true,
+      scrollwheel: false,
+      }),
+      []
   );
-}
+
+  const { isLoaded } = useLoadScript({
+      googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY as string,
+      libraries: libraries as any,
+  });
+
+  if (!isLoaded) {
+      return <p>Loading...</p>;
+  }
+
+  return (
+      <div className={styles.homeWrapper}>
+      
+          <GoogleMap
+              options={mapOptions}
+              zoom={14}
+              center={mapCenter}
+              mapTypeId={google.maps.MapTypeId.ROADMAP}
+              mapContainerStyle={{ width: '800px', height: '800px' }}
+              onLoad={(map) => console.log('Map Loaded')}
+          >
+              <MarkerF
+                  position={mapCenter}
+                  onLoad={() => console.log('Marker Loaded')}
+              />
+
+              {[1000, 2500].map((radius, idx) => {
+                  return (
+                      <CircleF
+                      key={idx}
+                      center={mapCenter}
+                      radius={radius}
+                      onLoad={() => console.log('Circle Load...')}
+                          options={{
+                              fillColor: radius > 1000 ? 'red' : 'green',
+                              strokeColor: radius > 1000 ? 'red' : 'green',
+                              strokeOpacity: 0.8,
+                          }}
+                      />
+                  );
+              })}
+          </GoogleMap>
+      </div>
+  );
+};
