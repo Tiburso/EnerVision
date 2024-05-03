@@ -1,5 +1,7 @@
+"use client";
+
 import {
-  useLoadScript,
+  useJsApiLoader,
   GoogleMap,
   MarkerF,
   CircleF,
@@ -18,17 +20,19 @@ export default function Home() {
 
   const mapOptions = useMemo<google.maps.MapOptions>(
       () => ({
-      disableDefaultUI: true,
-      clickableIcons: true,
-      scrollwheel: false,
-      }),
+        disableDefaultUI: true,
+        clickableIcons: true,
+        scrollwheel: false,
+        }),
       []
   );
 
-  const { isLoaded } = useLoadScript({
-      googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY as string,
-      libraries: libraries as any,
+  const { isLoaded } = useJsApiLoader({
+      id: 'google-map-script',
+      googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
   });
+
+  console.log(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 
   if (!isLoaded) {
       return <p>Loading...</p>;
@@ -39,9 +43,9 @@ export default function Home() {
       
           <GoogleMap
               options={mapOptions}
-              zoom={14}
+              zoom={20}
               center={mapCenter}
-              mapTypeId={google.maps.MapTypeId.ROADMAP}
+              mapTypeId={google.maps.MapTypeId.SATELLITE}
               mapContainerStyle={{ width: '800px', height: '800px' }}
               onLoad={(map) => console.log('Map Loaded')}
           >
@@ -50,7 +54,7 @@ export default function Home() {
                   onLoad={() => console.log('Marker Loaded')}
               />
 
-              {[1000, 2500].map((radius, idx) => {
+              {/* {[1000, 2500].map((radius, idx) => {
                   return (
                       <CircleF
                       key={idx}
@@ -64,7 +68,7 @@ export default function Home() {
                           }}
                       />
                   );
-              })}
+              })} */}
           </GoogleMap>
       </div>
   );
