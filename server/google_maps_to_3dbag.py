@@ -112,17 +112,24 @@ def get_3dbag_information(bbox: list):
     return data["features"]
 
 
+def google_to_lat_lng(center: str):
+    image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
+
+    # Run the machine learning model here
+
+    lower_left = pixels_to_lat_lng(center, (0, IMAGE_SIZE))
+    upper_right = pixels_to_lat_lng(center, (IMAGE_SIZE, 0))
+
+    return lower_left, upper_right
+
+
 if __name__ == "__main__":
     load_dotenv()
 
     GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
     center = "51.425722,5.50894"
 
-    image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
-
-    # Run the machine learning model here
-    lower_left = pixels_to_lat_lng(center, (0, IMAGE_SIZE))
-    upper_right = pixels_to_lat_lng(center, (IMAGE_SIZE, 0))
+    lower_left, upper_right = google_to_lat_lng(center)
 
     # Only features that have a geometry that intersects the
     # bounding box are selected. The bounding box is provided as four numbers:
