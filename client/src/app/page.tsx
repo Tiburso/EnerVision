@@ -1,7 +1,7 @@
 "use client";
 
 import {
-    useJsApiLoader,
+    useLoadScript,
     GoogleMap,
 } from '@react-google-maps/api';
 
@@ -26,7 +26,7 @@ export default function Home() {
       []
   );
 
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded } = useLoadScript({
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,  
   });
   
@@ -35,31 +35,31 @@ export default function Home() {
   }
 
   return (
-      <div className='flex items-center justify-center h-screen'>
+      <div className='flex items-center justify-center'>
+        <div className='flex flex-col items-center justify-center w-3/5 h-screen'>
+            <GoogleMap
+                mapContainerClassName='w-full h-4/5'
+                mapTypeId={google.maps.MapTypeId.SATELLITE}
+                options={mapOptions}
+                center={mapCenter}
+                zoom={20}
+                onLoad={(map) => console.log('Map Loaded')}
+              />
 
-        <div>
+            <Button
+              className='rounded mt-4 w-full'
+              variant='default'
+              onClick={() => {
+                  setLat(27.672932021393862);
+                  setLng(85.31184012689732);
 
-          <GoogleMap
-              mapTypeId={google.maps.MapTypeId.SATELLITE}
-              options={mapOptions}
-              center={mapCenter}
-              zoom={20}
-              mapContainerStyle={{ width: window.innerWidth/2, height: window.innerHeight/1.5 }}
-              onLoad={(map) => console.log('Map Loaded')}
-          >
-
-
-          </GoogleMap>
-
-          <Button
-            className='rounded mt-4 w-full'
-            variant='default'
-            onClick={() => {
-                console.log('Button clicked');
-            }}
-          >
-            Scan block
-          </Button>
+                  console.log('Map Centered');
+                  console.log('Latitude:', lat);
+                  console.log('Longitude:', lng);
+              }}
+            >
+              Scan block
+            </Button>
         </div>
       </div>
   );
