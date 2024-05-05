@@ -35,25 +35,32 @@ export default function Home() {
   }
 
   return (
-      <div>
+      <div className='flex items-center justify-center h-screen'>
+
+        <div>
+
           <GoogleMap
               mapTypeId={google.maps.MapTypeId.SATELLITE}
               options={mapOptions}
               center={mapCenter}
               zoom={20}
-              mapContainerStyle={{ width: '800px', height: window.innerHeight }}
+              mapContainerStyle={{ width: window.innerWidth/2, height: window.innerHeight/1.5 }}
               onLoad={(map) => console.log('Map Loaded')}
           >
+
+
           </GoogleMap>
 
           <Button
-            variant='secondary'
+            className='rounded mt-4 w-full'
+            variant='default'
             onClick={() => {
                 console.log('Button clicked');
             }}
           >
-            Click me
+            Scan block
           </Button>
+        </div>
       </div>
   );
 };
