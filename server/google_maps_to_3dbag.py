@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os
 
 ZOOM = 20
-IMAGE_SIZE = 5000
+IMAGE_SIZE = 640
 
 
 def check_cache(center: str):
