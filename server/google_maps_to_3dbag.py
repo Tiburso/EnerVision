@@ -7,9 +7,6 @@ from PIL import Image
 from dotenv import load_dotenv
 import os
 
-from losses import LossJaccard
-from inference import segmentation_inference
-
 ZOOM = 20
 IMAGE_SIZE = 5000
 
@@ -114,20 +111,10 @@ def get_3dbag_information(bbox: list):
     return data["features"]
 
 
-def google_to_lat_lng(center: str):
-    image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
-
-    # Run the machine learning model here
-    mask, bboxes = segmentation_inference(image)
-
-    # Use the bounding boxes to get the lower left and upper right corners
-    lower_left = pixels_to_lat_lng(center, bboxes[0])
-    upper_right = pixels_to_lat_lng(center, bboxes[1])
-
-    return lower_left, upper_right
-
-
 if __name__ == "__main__":
+    from losses import LossJaccard
+    from inference import segmentation_inference
+
     load_dotenv()
 
     GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
