@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 from PIL import Image
 
+import torch
 from losses import LossJaccard
 from models.base import BaseModel
 
@@ -14,9 +15,8 @@ segmentation_model = None
 def load_model():
     global segmentation_model
 
-    segmentation_model = BaseModel.load_from_checkpoint(
-        "server/segmentation_model.ckpt"
-    )
+    model = torch.load("server/segmentation_model.pth")
+    segmentation_model = BaseModel(model, LossJaccard(), None, None, 0.5, None)
     segmentation_model.eval()
 
 

@@ -17,9 +17,7 @@ GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
 
 @asynccontextmanager
-def lifespan():
-    from losses import LossJaccard
-
+async def lifespan(app: FastAPI):
     load_model()
     yield
     clean_up_model()

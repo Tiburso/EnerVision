@@ -21,7 +21,7 @@ class BaseModel(pl.LightningModule):
         self.treshold = treshold
         self.metrics = metrics
 
-        self.save_hyperparameters(logger=False)
+        self.save_hyperparameters(logger=False, ignore=["model", "loss_fn"])
 
     def forward(self, x):
         return self.model(x)
