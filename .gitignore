@@ -172,3 +172,5 @@ slurm-*
 
 # Ignore all model checkpoints
 **/*.ckpt
+
+cache/*

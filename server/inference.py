@@ -36,7 +36,7 @@ def masks_to_polygons(mask):
 
     polygons = []
     for contour in contours:
-        epsilon = 0.05 * cv2.arcLength(contour, True)
+        epsilon = 0.01 * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
         polygons.append(approx)
 
