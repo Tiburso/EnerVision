@@ -16,8 +16,10 @@ import { getSolarPanel, SolarPanel } from '@/lib/requests';
 export default function Home() {
   const [lat, setLat] = useState(51.425722);
   const [lng, setLng] = useState(5.50894);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+
   const [loading, setLoading] = useState(false);
-  const [solarPanels, setSolarPanels] = useState([] as SolarPanel[]);
+  const [solarPanels, setSolarPanels] = useState<SolarPanel[]>([]);
 
   const mapCenter = useMemo(() => ({ lat: lat, lng: lng }), [lat, lng]);
 
@@ -33,6 +35,21 @@ export default function Home() {
         }),
       []
   );
+
+  const handleMapLoad = (map: google.maps.Map) => {
+    setMapInstance(map);
+  };
+
+  const handleCenterChange = () => {
+    if (mapInstance) {
+      const center = mapInstance.getCenter();
+
+      if (center) {
+        setLat(center.lat());
+        setLng(center.lng());
+      }
+    }
+  };
 
   const { isLoaded } = useLoadScript({
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,  
@@ -72,7 +89,8 @@ export default function Home() {
                 options={mapOptions}
                 center={mapCenter}
                 zoom={20}
-                onLoad={(map) => console.log('Map Loaded')}
+                onLoad={handleMapLoad}
+                onCenterChanged={handleCenterChange}
               >
               
               {/* Each polygon corresponds to the polygon segmentation mask */}
