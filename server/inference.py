@@ -1,7 +1,7 @@
 from torch import float32
-from torchvision.ops import masks_to_boxes
 import torchvision.transforms.v2 as transforms
 
+import numpy as np
 import cv2
 from PIL import Image
 
@@ -38,14 +38,31 @@ def find_polygon_centers(polygons):
     return centers
 
 
-def plot_mask(mask, bbox, polygons, centers):
+def find_polygon_boundaries(polygons):
+    """Given the polygons list find the lower left and upper right corners.
+
+    Args:
+        polygons (_type_): _description_
+    """
+
+    extreme_points_per_polygon = []
+
+    # Iterate through each polygon
+    for polygon in polygons:
+        # Calculate the top left and bottom right points for the current polygon
+        top_left = np.min(polygon, axis=0)[0]
+        bottom_right = np.max(polygon, axis=0)[0]
+
+        # Append the extreme points to the list
+        extreme_points_per_polygon.append((top_left, bottom_right))
+
+    return extreme_points_per_polygon
+
+
+def plot_mask(mask, polygons, centers):
     from matplotlib import pyplot as plt
 
     plt.imshow(mask[0].cpu().numpy(), cmap="gray")
-    # show the bounding boxes
-    for box in bbox:
-        x1, y1, x2, y2 = box
-        plt.plot([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1], color="red")
 
     # show the polygons
     for polygon in polygons:
@@ -74,11 +91,11 @@ def segmentation_inference(image: Image.Image):
 
     mask = segmentation_model(image).argmax(1)
 
-    bbox = masks_to_boxes(mask)
     polygons = masks_to_polygons(mask.squeeze(0))
     centers = find_polygon_centers(polygons)
+    boundaries = find_polygon_boundaries(polygons)
 
-    print(polygons)
-    plot_mask(mask, bbox, polygons, centers)
+    plot_mask(mask, polygons, centers)
+    print(boundaries)
 
     return mask
