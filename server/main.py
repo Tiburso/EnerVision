@@ -11,7 +11,7 @@ app = FastAPI()
 async def segment_solar_panel(center: str):
     lat, lng = google_to_lat_lng(center)
 
-    return {"lat": lat, "lng": lng}
+    return {"panels": [{"lat": lat, "lng": lng}]}
 
 
 # @app.get("/items/{item_id}")

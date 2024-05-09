@@ -169,3 +169,6 @@ lightning_logs/
 data/*
 
 slurm-*
+
+# Ignore all model checkpoints
+**/*.ckpt
