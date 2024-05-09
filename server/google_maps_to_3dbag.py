@@ -26,7 +26,7 @@ def check_cache(center: str):
 
     # Check if the image is already in the cache
     if os.path.exists(f"cache/{center}.png"):
-        return Image.open(f"cache/{center}.png")
+        return Image.open(f"cache/{center}.png").convert("RGB")
     else:
         return None
 
@@ -136,9 +136,7 @@ if __name__ == "__main__":
     image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
 
     # Run the machine learning model here
-    mask, bboxes = segmentation_inference(image)
-
-    print(bboxes)
+    mask = segmentation_inference(image)
 
     # Only features that have a geometry that intersects the
     # bounding box are selected. The bounding box is provided as four numbers:

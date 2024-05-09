@@ -3,6 +3,7 @@
 import {
     useLoadScript,
     GoogleMap,
+    PolygonF
 } from '@react-google-maps/api';
 
 import React from 'react';
@@ -44,7 +45,26 @@ export default function Home() {
                 center={mapCenter}
                 zoom={20}
                 onLoad={(map) => console.log('Map Loaded')}
+              >
+              
+              {/* Each polygon corresponds to the polygon segmentation mask */}
+              <PolygonF
+                paths={
+                  [
+                    { lat: 27.672932021393862, lng: 85.31184012689732 },
+                    { lat: 27.672932021393862, lng: 85.31184012689732 },
+                    { lat: 27.672932021393862, lng: 85.31184012689732 },
+                    { lat: 27.672932021393862, lng: 85.31184012689732 },
+                  ]
+                }
+                onClick={
+                  () => {
+                    console.log('Polygon Clicked');
+                  }
+                }
               />
+
+            </GoogleMap>
 
             <Button
               className='rounded mt-4 w-full'
