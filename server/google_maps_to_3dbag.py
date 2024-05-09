@@ -1,5 +1,4 @@
 import requests
-import json
 import numpy as np
 from pyproj import CRS, Transformer
 
@@ -7,6 +6,9 @@ from PIL import Image
 
 from dotenv import load_dotenv
 import os
+
+from losses import LossJaccard
+from inference import segmentation_inference
 
 ZOOM = 20
 IMAGE_SIZE = 640
@@ -34,7 +36,7 @@ def save_image_to_cache(image, center: str):
         f.write(image.content)
 
     # Read the image from the cache
-    return Image.open(f"cache/{center}.png")
+    return Image.open(f"cache/{center}.png").convert("RGB")
 
 
 def fetch_google_maps_static_image(center: str, key: str):
@@ -116,9 +118,11 @@ def google_to_lat_lng(center: str):
     image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
 
     # Run the machine learning model here
+    mask, bboxes = segmentation_inference(image)
 
-    lower_left = pixels_to_lat_lng(center, (0, IMAGE_SIZE))
-    upper_right = pixels_to_lat_lng(center, (IMAGE_SIZE, 0))
+    # Use the bounding boxes to get the lower left and upper right corners
+    lower_left = pixels_to_lat_lng(center, bboxes[0])
+    upper_right = pixels_to_lat_lng(center, bboxes[1])
 
     return lower_left, upper_right
 
@@ -129,7 +133,10 @@ if __name__ == "__main__":
     GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
     center = "51.425722,5.50894"
 
-    lower_left, upper_right = google_to_lat_lng(center)
+    image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
+
+    # Run the machine learning model here
+    mask, bboxes = segmentation_inference(image)
 
     # Only features that have a geometry that intersects the
     # bounding box are selected. The bounding box is provided as four numbers:
@@ -138,16 +145,16 @@ if __name__ == "__main__":
     # Lower left corner, coordinate axis 2 (min. y)
     # Upper right corner, coordinate axis 1 (max. x)
     # Upper right corner, coordinate axis 2 (max. y)
-    new_lower_left = lat_lng_to_amerfoort_rd(lower_left)
-    new_upper_right = lat_lng_to_amerfoort_rd(upper_right)
+    # new_lower_left = lat_lng_to_amerfoort_rd(lower_left)
+    # new_upper_right = lat_lng_to_amerfoort_rd(upper_right)
 
-    bbox = [
-        new_lower_left[0],
-        new_lower_left[1],
-        new_upper_right[0],
-        new_upper_right[1],
-    ]
+    # bbox = [
+    #     new_lower_left[0],
+    #     new_lower_left[1],
+    #     new_upper_right[0],
+    #     new_upper_right[1],
+    # ]
 
-    data = get_3dbag_information(bbox)
+    # data = get_3dbag_information(bbox)
 
-    print(data[0]["CityObjects"][list(data[0]["CityObjects"].keys())[0]])
+    # print(data[0]["CityObjects"][list(data[0]["CityObjects"].keys())[0]])

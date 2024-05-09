@@ -293,3 +293,13 @@ class CombinedLoss(nn.Module):
         jaccard_loss = self.jaccard_loss(y_pred, y_true)
 
         return cross_entropy_loss + 2 * dice_loss + 3 * jaccard_loss
+
+
+class LossJaccard(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.loss = JaccardLoss(mode="multiclass")
+
+    def forward(self, y_hat, y):
+        y = y.argmax(dim=1)
+        return self.loss(y_hat, y)
