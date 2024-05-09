@@ -4,6 +4,7 @@ import os
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from server.google_maps_to_3dbag import (
     fetch_google_maps_static_image,
@@ -23,7 +24,19 @@ async def lifespan(app: FastAPI):
     clean_up_model()
 
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/segmentation")

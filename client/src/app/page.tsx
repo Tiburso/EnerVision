@@ -7,9 +7,11 @@ import {
 } from '@react-google-maps/api';
 
 import React from 'react';
+import { useMemo, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 
-import { useMemo, useState } from 'react';
+import { getSolarPanel } from '@/lib/requests';
 
 export default function Home() {
   const [lat, setLat] = useState(51.425722);
@@ -72,13 +74,9 @@ export default function Home() {
             <Button
               className='rounded mt-4 w-full'
               variant='default'
-              onClick={() => {
-                  setLat(51.425722);
-                  setLng(5.50894);
-
-                  console.log('Map Centered');
-                  console.log('Latitude:', lat);
-                  console.log('Longitude:', lng);
+              onClick={async () => {
+                  const solarPanel = await getSolarPanel(lat, lng);
+                  console.log(solarPanel); 
               }}
             >
               Scan block
