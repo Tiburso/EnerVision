@@ -54,9 +54,13 @@ async def segment_solar_panel(center: str):
         for polygon in polygons
     ]
 
+    panels = [
+        {"polygon": polygon, "center": seg_center}
+        for polygon, seg_center in zip(polygons, seg_centers)
+    ]
+
     return {
-        "polygons": polygons,
-        "centers": seg_centers,
+        "panels": panels,
     }
 
 

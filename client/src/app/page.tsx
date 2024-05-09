@@ -11,12 +11,12 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-import { getSolarPanel } from '@/lib/requests';
+import { getSolarPanel, SolarPanel } from '@/lib/requests';
 
 export default function Home() {
   const [lat, setLat] = useState(51.425722);
   const [lng, setLng] = useState(5.50894);
-  const [satellites, setSatellites] = useState([]);
+  const [solarPanels, setSolarPanels] = useState([] as SolarPanel[]);
 
   const mapCenter = useMemo(() => ({ lat: lat, lng: lng }), [lat, lng]);
 
@@ -53,21 +53,23 @@ export default function Home() {
               >
               
               {/* Each polygon corresponds to the polygon segmentation mask */}
-              {/* <PolygonF
-                paths={
-                  [
-                    { lat: 51.425722, lng: 5.509 },
-                    { lat: 51.425722, lng: 5.50894 },
-                    { lat: 51.425722, lng: 5.50894 },
-                    { lat: 51.425726, lng: 5.50894 },
-                  ]
-                }
-                onClick={
-                  () => {
-                    console.log('Polygon Clicked');
-                  }
-                }
-              /> */}
+              {solarPanels.map((solarPanel, index) => (
+                  <PolygonF
+                      key={index}
+                      path={solarPanel.polygon}
+                      options={{
+                          strokeColor: '#FF0000',
+                          strokeOpacity: 0.8,
+                          strokeWeight: 2,
+                          fillColor: '#FF0000',
+                          fillOpacity: 0.35,
+                          clickable: true,
+                          draggable: false,
+                          editable: false,
+                          visible: true,
+                      }}
+                  />
+              ))}
 
             </GoogleMap>
 
@@ -75,8 +77,10 @@ export default function Home() {
               className='rounded mt-4 w-full'
               variant='default'
               onClick={async () => {
-                  const solarPanel = await getSolarPanel(lat, lng);
-                  console.log(solarPanel); 
+                  const results = await getSolarPanel(lat, lng);
+                  
+                  // If results is not empty, append the results to the solarPanels state
+                  setSolarPanels([...solarPanels, ...results] as SolarPanel[]);
               }}
             >
               Scan block
