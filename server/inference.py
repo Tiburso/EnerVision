@@ -7,6 +7,8 @@ from PIL import Image
 
 import torch
 from losses import LossJaccard
+
+from models.architectures import DeepLabModel
 from models.base import BaseModel
 
 segmentation_model = None
@@ -15,8 +17,9 @@ segmentation_model = None
 def load_model():
     global segmentation_model
 
-    model = torch.load("server/segmentation_model.pth")
-    segmentation_model = BaseModel(model, LossJaccard(), None, None, 0.5, None)
+    model = DeepLabModel(2, backbone="resnet152")
+    model.load_state_dict(torch.load("server/segmentation_model.pth"))
+    segmentation_model = BaseModel(model, LossJaccard(), None)
     segmentation_model.eval()
 
 
