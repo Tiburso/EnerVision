@@ -35,8 +35,10 @@ async def segment_solar_panel(center: str):
 
     # Convert the centers and the polygon values into real world coordinates
     seg_centers = [pixels_to_lat_lng(center, seg_center) for seg_center in seg_centers]
+
     polygons = [
-        [pixels_to_lat_lng(center, point) for point in polygon] for polygon in polygons
+        [pixels_to_lat_lng(center, point[0]) for point in polygon]
+        for polygon in polygons
     ]
 
     return {
