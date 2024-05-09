@@ -11,7 +11,7 @@ from losses import LossJaccard
 from inference import segmentation_inference
 
 ZOOM = 20
-IMAGE_SIZE = 640
+IMAGE_SIZE = 5000
 
 
 def check_cache(center: str):
@@ -137,6 +137,8 @@ if __name__ == "__main__":
 
     # Run the machine learning model here
     mask, bboxes = segmentation_inference(image)
+
+    print(bboxes)
 
     # Only features that have a geometry that intersects the
     # bounding box are selected. The bounding box is provided as four numbers:
