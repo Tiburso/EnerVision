@@ -14,14 +14,12 @@ import { Button } from '@/components/ui/button';
 import { getSolarPanel, SolarPanel } from '@/lib/requests';
 
 export default function Home() {
-  const [lat, setLat] = useState(51.425722);
-  const [lng, setLng] = useState(5.50894);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [solarPanels, setSolarPanels] = useState<SolarPanel[]>([]);
 
-  const mapCenter = useMemo(() => ({ lat: lat, lng: lng }), [lat, lng]);
+  const mapCenter = useMemo(() => ({ lat: 51.425722, lng: 5.50894 }), []);
 
   const mapOptions = useMemo<google.maps.MapOptions>(
       () => ({
@@ -40,23 +38,26 @@ export default function Home() {
     setMapInstance(map);
   };
 
-  const handleCenterChange = () => {
-    if (mapInstance) {
-      const center = mapInstance.getCenter();
-
-      if (center) {
-        setLat(center.lat());
-        setLng(center.lng());
-      }
-    }
-  };
-
   const { isLoaded } = useLoadScript({
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,  
   });
 
   const scanArea = async () => {
       setLoading(true);
+
+      if (!mapInstance) {
+        return;
+      }
+
+      const center = mapInstance.getCenter();
+
+      if (!center) {
+        return;
+      }
+
+      const lat = center.lat();
+      const lng = center.lng();
+
       try {
         const results = await getSolarPanel(lat, lng);
         setSolarPanels([...solarPanels, ...results] as SolarPanel[]);
@@ -90,7 +91,6 @@ export default function Home() {
                 center={mapCenter}
                 zoom={20}
                 onLoad={handleMapLoad}
-                onCenterChanged={handleCenterChange}
               >
               
               {/* Each polygon corresponds to the polygon segmentation mask */}
