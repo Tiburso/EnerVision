@@ -5,10 +5,25 @@ import numpy as np
 import cv2
 from PIL import Image
 
+from losses import LossJaccard
 from models.base import BaseModel
 
-segmentation_model = BaseModel.load_from_checkpoint("server/segmentation_model.ckpt")
-segmentation_model.eval()
+segmentation_model = None
+
+
+def load_model():
+    global segmentation_model
+
+    segmentation_model = BaseModel.load_from_checkpoint(
+        "server/segmentation_model.ckpt"
+    )
+    segmentation_model.eval()
+
+
+def clean_up_model():
+    global segmentation_model
+
+    segmentation_model = None
 
 
 def masks_to_polygons(mask):

@@ -2,17 +2,30 @@ from typing import Union
 from dotenv import load_dotenv
 import os
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from losses import LossJaccard
-from google_maps_to_3dbag import fetch_google_maps_static_image, pixels_to_lat_lng
-from inference import segmentation_inference
+from server.google_maps_to_3dbag import (
+    fetch_google_maps_static_image,
+    pixels_to_lat_lng,
+)
+from server.inference import segmentation_inference, load_model, clean_up_model
 
 load_dotenv()
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
-app = FastAPI()
+
+@asynccontextmanager
+def lifespan():
+    from losses import LossJaccard
+
+    load_model()
+    yield
+    clean_up_model()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/segmentation")
