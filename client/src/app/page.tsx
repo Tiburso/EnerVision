@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { useMemo, useState } from 'react';
 
 export default function Home() {
-  const [lat, setLat] = useState(27.672932021393862);
-  const [lng, setLng] = useState(85.31184012689732);
+  const [lat, setLat] = useState(51.425722);
+  const [lng, setLng] = useState(5.50894);
+  const [satellites, setSatellites] = useState([]);
 
   const mapCenter = useMemo(() => ({ lat: lat, lng: lng }), [lat, lng]);
 
@@ -23,6 +24,9 @@ export default function Home() {
         clickableIcons: true,
         scrollwheel: false,
         zoomControl: false,
+        isFractionalZoomEnabled: false,
+        mapTypeId: 'satellite',
+        tilt: 0,
         }),
       []
   );
@@ -37,10 +41,9 @@ export default function Home() {
 
   return (
       <div className='flex items-center justify-center'>
-        <div className='flex flex-col items-center justify-center w-3/5 h-screen'>
+        <div className='flex flex-col items-center justify-center w-4/5 h-screen'>
             <GoogleMap
                 mapContainerClassName='w-full h-4/5'
-                mapTypeId={google.maps.MapTypeId.SATELLITE}
                 options={mapOptions}
                 center={mapCenter}
                 zoom={20}
@@ -48,13 +51,13 @@ export default function Home() {
               >
               
               {/* Each polygon corresponds to the polygon segmentation mask */}
-              <PolygonF
+              {/* <PolygonF
                 paths={
                   [
-                    { lat: 27.672932021393862, lng: 85.31184012689732 },
-                    { lat: 27.672932021393862, lng: 85.31184012689732 },
-                    { lat: 27.672932021393862, lng: 85.31184012689732 },
-                    { lat: 27.672932021393862, lng: 85.31184012689732 },
+                    { lat: 51.425722, lng: 5.509 },
+                    { lat: 51.425722, lng: 5.50894 },
+                    { lat: 51.425722, lng: 5.50894 },
+                    { lat: 51.425726, lng: 5.50894 },
                   ]
                 }
                 onClick={
@@ -62,7 +65,7 @@ export default function Home() {
                     console.log('Polygon Clicked');
                   }
                 }
-              />
+              /> */}
 
             </GoogleMap>
 
@@ -70,8 +73,8 @@ export default function Home() {
               className='rounded mt-4 w-full'
               variant='default'
               onClick={() => {
-                  setLat(27.672932021393862);
-                  setLng(85.31184012689732);
+                  setLat(51.425722);
+                  setLng(5.50894);
 
                   console.log('Map Centered');
                   console.log('Latitude:', lat);
