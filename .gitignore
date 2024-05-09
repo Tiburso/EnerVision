@@ -162,3 +162,5 @@ dataset/imgs/*
 germany_dataset/
 readings.txt
 NL-Solar-Panel-Seg-1/
+energy_prediction/result.csv
+energy_prediction/output.csv
