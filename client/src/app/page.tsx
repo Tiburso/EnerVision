@@ -16,6 +16,7 @@ import { getSolarPanel, SolarPanel } from '@/lib/requests';
 export default function Home() {
   const [lat, setLat] = useState(51.425722);
   const [lng, setLng] = useState(5.50894);
+  const [loading, setLoading] = useState(false);
   const [solarPanels, setSolarPanels] = useState([] as SolarPanel[]);
 
   const mapCenter = useMemo(() => ({ lat: lat, lng: lng }), [lat, lng]);
@@ -36,6 +37,24 @@ export default function Home() {
   const { isLoaded } = useLoadScript({
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,  
   });
+
+  const scanArea = async () => {
+      setLoading(true);
+      try {
+        const results = await getSolarPanel(lat, lng);
+        setSolarPanels([...solarPanels, ...results] as SolarPanel[]);
+      } catch (error) {
+        console.error(error);
+      } 
+
+      setLoading(false);
+  }
+
+  const Spinner = () => (
+  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white fixed z-50"
+      role="status">
+  </div>
+  );
   
   if (!isLoaded) {
       return <p>Loading...</p>;
@@ -43,7 +62,11 @@ export default function Home() {
 
   return (
       <div className='flex items-center justify-center'>
+        
         <div className='flex flex-col items-center justify-center w-4/5 h-screen'>
+            {/* Add a spinner animation */}
+            {loading? <Spinner /> : null}
+
             <GoogleMap
                 mapContainerClassName='w-full h-4/5'
                 options={mapOptions}
@@ -76,12 +99,8 @@ export default function Home() {
             <Button
               className='rounded mt-4 w-full'
               variant='default'
-              onClick={async () => {
-                  const results = await getSolarPanel(lat, lng);
-                  
-                  // If results is not empty, append the results to the solarPanels state
-                  setSolarPanels([...solarPanels, ...results] as SolarPanel[]);
-              }}
+              onClick={scanArea}
+              disabled={loading}
             >
               Scan block
             </Button>
