@@ -95,7 +95,4 @@ def segmentation_inference(image: Image.Image):
     centers = find_polygon_centers(polygons)
     boundaries = find_polygon_boundaries(polygons)
 
-    plot_mask(mask, polygons, centers)
-    print(boundaries)
-
-    return mask
+    return mask, polygons, centers, boundaries
