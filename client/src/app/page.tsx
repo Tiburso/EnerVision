@@ -10,7 +10,7 @@ import { useMemo, useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { Searchbar } from '@/components/Searchbar';
+import { Searchbar } from '@/components/searchbar';
 import { SolarPanelF } from '@/components/SolarPanel';
 
 import { getSolarPanel, SolarPanel } from '@/lib/requests';
@@ -80,7 +80,7 @@ export default function Home() {
       <div className='flex items-center justify-center'>
         
         <div className='flex flex-col items-center justify-center w-4/5 h-screen'>
-            <Searchbar/>
+            <Searchbar className='w-3/4 relative my-5 shadow'/>
 
             {/* Add a spinner animation */}
             {loading? <Spinner /> : null}
@@ -104,7 +104,7 @@ export default function Home() {
             </GoogleMap>
 
             <Button
-              className='rounded mt-4 w-full'
+              className='rounded w-full my-5'
               variant='default'
               onClick={scanArea}
               disabled={loading}
