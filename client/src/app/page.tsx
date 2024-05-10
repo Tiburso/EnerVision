@@ -10,6 +10,7 @@ import { useMemo, useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { Searchbar } from '@/components/Searchbar';
 import { SolarPanelF } from '@/components/SolarPanel';
 
 import { getSolarPanel, SolarPanel } from '@/lib/requests';
@@ -20,6 +21,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [solarPanels, setSolarPanels] = useState<SolarPanel[]>([]);
 
+  const libraries = useMemo(() => ['places'], []);
   const mapCenter = useMemo(() => ({ lat: 51.425722, lng: 5.50894 }), []);
 
   const mapOptions = useMemo<google.maps.MapOptions>(
@@ -36,7 +38,8 @@ export default function Home() {
   );
 
   const { isLoaded } = useLoadScript({
-      googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,  
+      googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string, 
+      libraries: libraries as any,
   });
 
   const handleMapLoad = (map: google.maps.Map) => {
@@ -77,6 +80,8 @@ export default function Home() {
       <div className='flex items-center justify-center'>
         
         <div className='flex flex-col items-center justify-center w-4/5 h-screen'>
+            <Searchbar/>
+
             {/* Add a spinner animation */}
             {loading? <Spinner /> : null}
 
@@ -88,7 +93,6 @@ export default function Home() {
                 onLoad={handleMapLoad}
               >
               
-              {/* Each polygon corresponds to the polygon segmentation mask */}
               {solarPanels.map((solarPanel, index) => (
                   <SolarPanelF
                     key={index}
