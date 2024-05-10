@@ -3,17 +3,14 @@
 import {
     useLoadScript,
     GoogleMap,
-    PolygonF,
-    InfoWindowF,
-    MarkerF,
 } from '@react-google-maps/api';
 
 import React from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { SolarPanelF } from '@/components/ui/SolarPanel';
+import { SolarPanelF } from '@/components/SolarPanel';
 
 import { getSolarPanel, SolarPanel } from '@/lib/requests';
 
@@ -29,8 +26,8 @@ export default function Home() {
       () => ({
         disableDefaultUI: true,
         clickableIcons: true,
-        scrollwheel: false,
-        zoomControl: false,
+        scrollwheel: true,
+        zoomControl: true,
         isFractionalZoomEnabled: false,
         mapTypeId: 'satellite',
         tilt: 0,
@@ -38,13 +35,13 @@ export default function Home() {
       []
   );
 
-  const handleMapLoad = (map: google.maps.Map) => {
-    setMapInstance(map);
-  };
-
   const { isLoaded } = useLoadScript({
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,  
   });
+
+  const handleMapLoad = (map: google.maps.Map) => {
+    setMapInstance(map);
+  };
 
   const scanArea = async () => {
       setLoading(true);
@@ -108,7 +105,7 @@ export default function Home() {
               onClick={scanArea}
               disabled={loading}
             >
-              Scan block
+              Scan Area
             </Button>
         </div>
       </div>
