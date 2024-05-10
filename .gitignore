@@ -175,3 +175,4 @@ slurm-*
 cache/*
 energy_prediction/result.csv
 energy_prediction/output.csv
+tb_logs/
