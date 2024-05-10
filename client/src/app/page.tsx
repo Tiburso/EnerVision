@@ -3,6 +3,7 @@
 import {
     useLoadScript,
     GoogleMap,
+    useJsApiLoader,
 } from '@react-google-maps/api';
 
 import React from 'react';
@@ -79,8 +80,8 @@ export default function Home() {
   return (
       <div className='flex items-center justify-center'>
         
-        <div className='flex flex-col items-center justify-center w-4/5 h-screen'>
-            <Searchbar className='w-3/4 relative my-5 shadow'/>
+        <div className='flex flex-col items-center justify-center w-4/5 h-screen overflow-hidden'>
+            <Searchbar className='w-3/4 relative my-5 shadow z-50'/>
 
             {/* Add a spinner animation */}
             {loading? <Spinner /> : null}

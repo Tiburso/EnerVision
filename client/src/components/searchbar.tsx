@@ -37,7 +37,7 @@ export function Searchbar({className, onClick} : SearchbarProps) {
       />
       
       {status === 'OK' && (
-        <ul className="text-sm text-gray-700 bg-white rounded mt-1">
+        <ul className="absolute w-full z-50 text-sm text-gray-700 bg-white rounded mt-1">
         {data.map((suggestion) => {
           const {
             place_id,
