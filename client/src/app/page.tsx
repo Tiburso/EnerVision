@@ -3,7 +3,9 @@
 import {
     useLoadScript,
     GoogleMap,
-    PolygonF
+    PolygonF,
+    InfoWindowF,
+    MarkerF,
 } from '@react-google-maps/api';
 
 import React from 'react';
@@ -11,6 +13,7 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { SolarPanelF } from '@/components/ui/SolarPanel';
 
 import { getSolarPanel, SolarPanel } from '@/lib/requests';
 
@@ -90,20 +93,10 @@ export default function Home() {
               
               {/* Each polygon corresponds to the polygon segmentation mask */}
               {solarPanels.map((solarPanel, index) => (
-                  <PolygonF
-                      key={index}
-                      path={solarPanel.polygon}
-                      options={{
-                          strokeColor: '#FF0000',
-                          strokeOpacity: 0.8,
-                          strokeWeight: 2,
-                          fillColor: '#FF0000',
-                          fillOpacity: 0.35,
-                          clickable: true,
-                          draggable: false,
-                          editable: false,
-                          visible: true,
-                      }}
+                  <SolarPanelF
+                    key={index}
+                    center={solarPanel.center}
+                    polygon={solarPanel.polygon}
                   />
               ))}
 
