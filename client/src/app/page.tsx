@@ -68,8 +68,19 @@ export default function Home() {
 
       try {
         const results = await getSolarPanel(lat, lng);
-        // const results = [] as SolarPanel[];
-        setSolarPanels([...solarPanels, ...results] as SolarPanel[]);
+        
+        if (results.length === 0) {
+          return;
+        }
+
+        // new solar panels must be old with new but not duplicated
+        const newSolarPanels = results.filter((result) => {
+          return solarPanels.every((solarPanel) => {
+            return result && solarPanel.center !== result.center;
+          });
+        });
+
+        setSolarPanels([...solarPanels, ...newSolarPanels] as SolarPanel[]);
 
         // sleep for 1 second
         // await new Promise((resolve) => setTimeout(resolve, 1000));
