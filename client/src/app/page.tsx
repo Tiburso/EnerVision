@@ -12,7 +12,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Searchbar } from '@/components/searchbar';
-import { SolarPanelF } from '@/components/SolarPanel';
+import { SolarPanelF } from '@/components/solarPanel';
 
 import { getSolarPanel, SolarPanel } from '@/lib/requests';
 
