@@ -2,13 +2,14 @@ import { SearchIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 import usePlacesAutocomplete, {
+  LatLng,
   getGeocode,
   getLatLng,
 } from 'use-places-autocomplete';
 
 export interface SearchbarProps {
   className?: string
-  onClick?: () => void
+  onClick?: (val: LatLng) => void
 }
 
 export function Searchbar({className, onClick} : SearchbarProps) {
@@ -47,10 +48,13 @@ export function Searchbar({className, onClick} : SearchbarProps) {
 
           return (
             <li key={place_id}>
-            <a onClick={() => {
+            <a onClick={async () => {
+              const geocode = await getGeocode( { address: description } );
+              const latLng = getLatLng(geocode[0]);
+
               setValue(description, false);
               clearSuggestions();
-              onClick && onClick();
+              onClick && onClick(latLng);
             }} className="block rounded px-4 py-2 hover:bg-gray-200 cursor-pointer">
               <strong>{main_text}</strong> <small>{secondary_text}</small>
             </a>

@@ -81,7 +81,15 @@ export default function Home() {
       <div className='flex items-center justify-center'>
         
         <div className='flex flex-col items-center justify-center w-4/5 h-screen overflow-hidden'>
-            <Searchbar className='w-3/4 relative my-5 shadow z-50'/>
+            <Searchbar className='w-3/4 relative my-5 shadow z-50'
+              onClick={(val) => {
+                if (!mapInstance) {
+                  return;
+                }
+
+                mapInstance.setCenter(val);
+              }}
+            />
 
             {/* Add a spinner animation */}
             {loading? <Spinner /> : null}
