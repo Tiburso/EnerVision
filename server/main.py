@@ -7,21 +7,23 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from server.google_maps_to_3dbag import (
+    load_google_maps_api,
+    unload_google_maps_api,
     fetch_google_maps_static_image,
     pixels_to_lat_lng,
 )
 from server.inference import segmentation_inference, load_model, clean_up_model
 
-load_dotenv()
-
-GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    load_google_maps_api()
     load_model()
+
     yield
+
     clean_up_model()
+    unload_google_maps_api()
 
 
 origins = [
@@ -41,7 +43,7 @@ app.add_middleware(
 
 @app.get("/segmentation")
 async def segment_solar_panel(center: str):
-    image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
+    image = fetch_google_maps_static_image(center)
 
     # Run the machine learning model here
     polygons, seg_centers, boundaries = segmentation_inference(image)
@@ -62,8 +64,3 @@ async def segment_solar_panel(center: str):
     return {
         "panels": panels,
     }
-
-
-# @app.get("/items/{item_id}")
-# async def read_item(item_id: int, q: Union[str, None] = None):
-#     return {"item_id": item_id, "q": q}

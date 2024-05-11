@@ -1,6 +1,8 @@
+import googlemaps.client
 import requests
 import numpy as np
 from pyproj import CRS, Transformer
+import googlemaps
 
 from PIL import Image
 
@@ -9,6 +11,21 @@ import os
 
 ZOOM = 20
 IMAGE_SIZE = 640
+gmaps: googlemaps.client.Client = None
+
+
+def load_google_maps_api():
+    global gmaps
+
+    load_dotenv()
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+
+    gmaps = googlemaps.Client(key=api_key)
+
+
+def unload_google_maps_api():
+    global gmaps
+    gmaps = None
 
 
 def check_cache(center: str):
@@ -28,39 +45,37 @@ def check_cache(center: str):
         return None
 
 
-def save_image_to_cache(image, center: str):
+def read_image(image, center: str):
     with open(f"cache/{center}.png", "wb") as f:
-        f.write(image.content)
+        for chunk in image:
+            f.write(chunk)
 
     # Read the image from the cache
-    return Image.open(f"cache/{center}.png").convert("RGB")
+    img = Image.open(f"cache/{center}.png").convert("RGB")
+
+    # Remove the image from the cache
+    os.remove(f"cache/{center}.png")
+
+    return img
 
 
-def fetch_google_maps_static_image(center: str, key: str):
-    global ZOOM, IMAGE_SIZE
+def fetch_google_maps_static_image(center: str):
+    global ZOOM, IMAGE_SIZE, gmaps
     maptype = "satellite"
-    url = "https://maps.googleapis.com/maps/api/staticmap"
-    size = f"{IMAGE_SIZE}x{IMAGE_SIZE}"
 
     image = check_cache(center)
 
-    if image:
+    if image is not None:
         return image
 
-    res = requests.get(
-        url,
-        params={
-            "center": center,
-            "zoom": ZOOM,
-            "size": size,
-            "maptype": maptype,
-            "key": key,
-        },
+    image = gmaps.static_map(
+        center=center,
+        zoom=ZOOM,
+        size=IMAGE_SIZE,
+        maptype=maptype,
     )
 
-    res.raise_for_status()
-
-    image = save_image_to_cache(res, center)
+    image = read_image(image, center)
 
     return image
 
@@ -109,39 +124,3 @@ def get_3dbag_information(bbox: list):
     data = res.json()
 
     return data["features"]
-
-
-if __name__ == "__main__":
-    from losses import LossJaccard
-    from inference import segmentation_inference
-
-    load_dotenv()
-
-    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-    center = "51.425722,5.50894"
-
-    image = fetch_google_maps_static_image(center, GOOGLE_MAPS_API_KEY)
-
-    # Run the machine learning model here
-    mask = segmentation_inference(image)
-
-    # Only features that have a geometry that intersects the
-    # bounding box are selected. The bounding box is provided as four numbers:
-    #
-    # Lower left corner, coordinate axis 1 (min. x)
-    # Lower left corner, coordinate axis 2 (min. y)
-    # Upper right corner, coordinate axis 1 (max. x)
-    # Upper right corner, coordinate axis 2 (max. y)
-    # new_lower_left = lat_lng_to_amerfoort_rd(lower_left)
-    # new_upper_right = lat_lng_to_amerfoort_rd(upper_right)
-
-    # bbox = [
-    #     new_lower_left[0],
-    #     new_lower_left[1],
-    #     new_upper_right[0],
-    #     new_upper_right[1],
-    # ]
-
-    # data = get_3dbag_information(bbox)
-
-    # print(data[0]["CityObjects"][list(data[0]["CityObjects"].keys())[0]])
