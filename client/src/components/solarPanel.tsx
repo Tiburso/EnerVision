@@ -4,6 +4,11 @@ import {
     MarkerF,
 } from '@react-google-maps/api';
 
+import React from 'react';
+import { useState } from 'react';
+
+import { LineGraph } from './graph';
+
 interface SolarPanelProps {
     key: number
     center: google.maps.LatLng
@@ -11,12 +16,29 @@ interface SolarPanelProps {
 }
 
 const SolarPanelF: React.FC<SolarPanelProps> = ({ key, center, polygon, }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const data = [{name: 'Page A', uv: 400}, {name: 'Page B', uv: 100}];
+    
     return (
         <>
             <MarkerF
                 key={key}
                 position={center}
+                onClick={() => setIsOpen(!isOpen)}
             />
+            
+            {isOpen && 
+            <InfoWindowF
+                key={key}
+                position={center}
+                zIndex={1}
+                onCloseClick={() => setIsOpen(!isOpen)}
+            >
+                <div className="text-red-900 pr-5 pt-5">                    
+                    <LineGraph />
+                </div>
+            </InfoWindowF>}
+
             <PolygonF
                 key={key}
                 path={polygon}

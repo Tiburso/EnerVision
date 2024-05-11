@@ -11,6 +11,7 @@
   "dependencies": {
     "@nextui-org/react": "^2.3.6",
     "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-hover-card": "^1.0.7",
     "@radix-ui/react-slot": "^1.0.2",
     "@react-google-maps/api": "^2.19.3",
     "class-variance-authority": "^0.7.0",
@@ -20,6 +21,7 @@
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
+    "recharts": "^2.12.7",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "use-places-autocomplete": "^4.0.1"
