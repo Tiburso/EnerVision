@@ -3,7 +3,7 @@
 import {
     useLoadScript,
     GoogleMap,
-    useJsApiLoader,
+    RectangleF,
 } from '@react-google-maps/api';
 
 import React from 'react';
@@ -63,9 +63,16 @@ export default function Home() {
       const lat = center.lat();
       const lng = center.lng();
 
+      mapCenter.lat = lat;
+      mapCenter.lng = lng;
+
       try {
         const results = await getSolarPanel(lat, lng);
+        // const results = [] as SolarPanel[];
         setSolarPanels([...solarPanels, ...results] as SolarPanel[]);
+
+        // sleep for 1 second
+        // await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(error);
       } 
@@ -80,7 +87,7 @@ export default function Home() {
   return (
       <div className='flex items-center justify-center'>
         
-        <div className='flex flex-col items-center justify-center w-4/5 h-screen overflow-hidden'>
+        <div className='flex flex-col items-center justify-center w-4/5 h-screen'>
             <Searchbar className='w-3/4 relative my-5 shadow z-50'
               onClick={(val) => {
                 if (!mapInstance) {
@@ -92,7 +99,7 @@ export default function Home() {
             />
 
             {/* Add a spinner animation */}
-            {loading? <Spinner /> : null}
+            {loading && <Spinner />}
 
             <GoogleMap
                 mapContainerClassName='w-full h-4/5'
@@ -101,6 +108,28 @@ export default function Home() {
                 zoom={20}
                 onLoad={handleMapLoad}
               >
+
+              {loading && <RectangleF
+                options={{
+                  strokeColor: '#CCCCCC',
+                  strokeOpacity: 0.5,
+                  strokeWeight: 1,
+                  fillColor: '#FFFFFF',
+                  fillOpacity: 0.35,
+                  clickable: false,
+                  draggable: false,
+                  editable: false,
+                  visible: true,
+
+                  // the bounds must be a 640pixel x 640pixel square
+                  bounds: {
+                    north: mapCenter.lat + 0.00026759,
+                    south: mapCenter.lat - 0.00026759,
+                    east: mapCenter.lng + 0.00043,
+                    west: mapCenter.lng - 0.00043,
+                  },
+                }}
+              />}
               
               {solarPanels.map((solarPanel, index) => (
                   <SolarPanelF
