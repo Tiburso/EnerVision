@@ -33,10 +33,8 @@ const SolarPanelF: React.FC<SolarPanelProps> = ({ key, center, polygon, }) => {
                 position={center}
                 zIndex={1}
                 onCloseClick={() => setIsOpen(!isOpen)}
-            >
-                <div className="text-red-900 pr-5 pt-5">                    
-                    <LineGraph />
-                </div>
+            >   
+                <LineGraph />
             </InfoWindowF>}
 
             <PolygonF
