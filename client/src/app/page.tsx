@@ -122,6 +122,7 @@ export default function Home() {
                   visible: true,
 
                   // the bounds must be a 640pixel x 640pixel square
+                  // the values are calculated based on the center of the map and the zoom level
                   bounds: {
                     north: mapCenter.lat + 0.00026759,
                     south: mapCenter.lat - 0.00026759,
