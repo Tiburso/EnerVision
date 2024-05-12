@@ -61,8 +61,8 @@ def get_pv_system(panel):
 def simulate_pv_output(system, weather_data, location):
     """ Simulate daily PV output for all arrays in the system. """
     solar_position = location.get_solarposition(weather_data.index)
-    temp_air = weather_data['T']
-    wind_speed = weather_data['FH']
+    temp_air = weather_data['temp_air']
+    wind_speed = weather_data['wind_speed']
     
     # Initialize an empty DataFrame to store the output for each array
     output_data = pd.DataFrame(index=weather_data.index)
@@ -195,9 +195,9 @@ def prepare_data_for_model(energy_outputs, weather_data, panels):
 if __name__ == "__main__":
     # Load weather data
     #weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
-    weather_data = load_weather_data('energy_prediction/energy_data/output.csv')
+    weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
     #weather_data.index = pd.to_datetime(weather_data['date_time'])
-    weather_data.index = pd.to_datetime(weather_data['date_time'], utc=True)
+    weather_data.index = pd.to_datetime(weather_data['timestamp'], utc=True)
     
     # Define location (example: Berlin, Germany)
     site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Amsterdam')
