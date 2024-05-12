@@ -29,8 +29,8 @@ def simulate_pv_output_random_days(system, weather_data, location, num_days=10):
         end_idx = day + 24
         daily_weather = weather_data.iloc[start_idx:end_idx]
         solar_position = location.get_solarposition(daily_weather.index)
-        temp_air = daily_weather['T']
-        wind_speed = daily_weather['FH']
+        temp_air = daily_weather['temp_air']
+        wind_speed = daily_weather['wind_speed']
         output_data = pd.DataFrame(index=daily_weather.index)
         for array in system.arrays:
             poa_irrad = irradiance.get_total_irradiance(
