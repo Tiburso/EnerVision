@@ -7,9 +7,14 @@ import os
 
 
 class SolarDKDataset(Dataset):
+    """
+    A dataset class for loading images and masks of the Solar DK dataset
+    
+    This class loads images and masks of the Solar DK dataset to make them suitable for image segmentation.
+    The images and mask are by default loaded as 
+    """
     def __init__(
-        self, image_dir, transform=None, normalize=True, total_samples: int = None
-    ):
+        self, image_dir, image_transform=None, mask_transform=None, total_samples: int = None):
         # Get all files in the image directory either in the positive or negative folders
         self.positive_files = os.listdir(os.path.join(image_dir, "positive"))
         self.negative_files = os.listdir(os.path.join(image_dir, "negative"))
@@ -22,9 +27,10 @@ class SolarDKDataset(Dataset):
         # Concat both lists
         self.images = self.positive_files + self.negative_files
 
-        # Set the image directory
+        # Set the image directory, image transformations, and mask transformations
         self.image_dir = image_dir
-        self.transform = transform
+        self.image_transform = image_transform
+        self.mask_transform = mask_transform
 
     def __len__(self):
         return len(self.images)
@@ -45,18 +51,14 @@ class SolarDKDataset(Dataset):
 
         image = F.to_image(image)
         image = F.to_dtype(image, dtype=torch.float32, scale=True)
-        image = F.normalize(
-            image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-        )
 
+        if self.image_transform:
+            image = self.image_transform(image)
+        
         mask = F.to_image(mask)
-        mask = F.to_dtype(mask, dtype=torch.float32)
+        mask = F.to_dtype(mask, dtype=torch.float32, scale=False)
 
-        # Resize them both to 640x640
-        image = F.resize(image, (640, 640))
-        mask = F.resize(mask, (640, 640), interpolation=F.InterpolationMode.NEAREST)
-
-        if self.transform is not None:
-            image, mask = self.transform(image, mask)
-
+        if self.mask_transform:
+            mask = self.mask_transform(mask)
+    
         return image, mask
