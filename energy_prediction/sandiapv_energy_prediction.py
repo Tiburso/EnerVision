@@ -13,7 +13,7 @@ def load_weather_data(file_path):
 
 def generate_random_panels(num_panels):
     """ Generate random configurations for a number of PV panels. """
-    panel_types = ['Canadian_Solar_CS5P_220M___2009_']
+    #panel_types = ['Canadian_Solar_CS5P_220M___2009_']
     tilts = [randint(5, 40) for _ in range(num_panels)]  # Tilt angles between 5 and 40 degrees
     azimuths = [randint(90, 270) for _ in range(num_panels)]  # Southward orientations between East and West
     module_types = ['monocrystalline', 'polycrystalline', 'thin-film', 'bifacial']
@@ -23,59 +23,49 @@ def generate_random_panels(num_panels):
 def get_pv_system(panel):
     """ Retrieves and configures a PVSystem object based on the panel type and parameters. """
     #module = pvsystem.retrieve_sam('SandiaMod')[panel['type']]
-
-    #Check modules make importable.
-    #sandia_modules = pvsystem.retrieve_sam('SandiaMod')
-    #module = sandia_modules[panel['type']]
-    module_parameters = {'pdc0': 200, 'gamma_pdc': -0.004}  
+   
+    module_specs = {
+    'monocrystalline': {'pdc0': 220, 'gamma_pdc': -0.0045},
+    'polycrystalline': {'pdc0': 200, 'gamma_pdc': -0.005},
+    'thin-film': {'pdc0': 180, 'gamma_pdc': -0.002},
+    'bifacial': {'pdc0': 210, 'gamma_pdc': -0.004}
+    } 
+    'lllll'
+    module_parameters = module_specs[panel['module_type']]#{'pdc0': 200, 'gamma_pdc': -0.004}  
+    
     mount = pvsystem.FixedMount(surface_tilt=panel['tilt'], surface_azimuth=panel['azimuth'])
+
     inverter_parameters = {'pdc0': 5000, 'eta_inv_nom': 0.96}
-    arrays = []
-    
-    module_types = ['monocrystalline', 'polycrystalline', 'thin-film', 'bifacial']
-    for i, module_type in enumerate(module_types):
-        arrays.append(pvsystem.Array(name = module_type,
-                                mount=mount, 
-                                module_parameters=module_parameters,
-                                temperature_model_parameters= temperature.TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_polymer'],
-                                module_type = module_type
-                                ))
-    
-    return pvsystem.PVSystem(name = 'system1',
-                            arrays =arrays,
-                            inverter =inverter_parameters,                           
-                            )
-    """
     array_one = (pvsystem.Array( mount=mount, 
                                 module_parameters=module_parameters,
                                 temperature_model_parameters= temperature.TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_polymer'],
-                                module_type = 'monocrystalline'
+                                #module_type = 'monocrystalline'
                                 ))
     return pvsystem.PVSystem(name = 'system1',
                             arrays =array_one,
                             inverter =inverter_parameters,                           
                             )
-    """
+    
 
 
 def simulate_pv_output(system, weather_data, location):
     """ Simulate daily PV output for all arrays in the system. """
     solar_position = location.get_solarposition(weather_data.index)
-    temp_air = weather_data['T']
-    wind_speed = weather_data['FH']
+    temp_air = weather_data['temp_air']
+    wind_speed = weather_data['wind_speed']
     
     # Initialize an empty DataFrame to store the output for each array
     output_data = pd.DataFrame(index=weather_data.index)
 
     # Simulate output for each array in the system
     for array in system.arrays:
-        print(array)
-        print('____________________')
+        #print(array)
+        #print('____________________')
         # Calculate POA irradiance
         aoi = irradiance.aoi(array.mount.surface_tilt, array.mount.surface_azimuth, solar_position['apparent_zenith'], solar_position['azimuth'])
         poa_irrad = irradiance.get_total_irradiance(array.mount.surface_tilt, array.mount.surface_azimuth,
                                                     solar_position['apparent_zenith'], solar_position['azimuth'],
-                                                    weather_data['dni'], weather_data['Q'], weather_data['dhi'])
+                                                    weather_data['dni'], weather_data['temp_air'], weather_data['dhi'])
         # Calculate cell temperature
         cell_temperature = temperature.sapm_cell(poa_irrad['poa_global'], temp_air, wind_speed,
                                                   **array.temperature_model_parameters)
@@ -186,11 +176,11 @@ def prepare_data_for_model(energy_outputs, weather_data, panels):
                     'azimuth': panel['azimuth'],
                     'module_type': panel['module_type'],
                     # Store sequences as lists in the DataFrame cell
-                    'temperature_sequence': daily_weather['T'].tolist(),
-                    'wind_speed_sequence': daily_weather['FH'].tolist(),
+                    'temperature_sequence': daily_weather['temp_air'].tolist(),
+                    'wind_speed_sequence': daily_weather['wind_speed'].tolist(),
                     'dni_sequence': daily_weather['dni'].tolist(),
                     'dhi_sequence': daily_weather['dhi'].tolist(),
-                    'global_irradiance_sequence': daily_weather['Q'].tolist(),
+                    'global_irradiance_sequence': daily_weather['temp_air'].tolist(),
                     'gaussian': popt.tolist()
                 }
                 model_data.append(row)
