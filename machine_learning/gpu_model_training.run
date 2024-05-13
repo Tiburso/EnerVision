@@ -1,17 +1,21 @@
 #!/usr/bin/bash
 
+# set job requirements
+#SBATCH --reservation=jhs_tue2022
 #SBATCH --job-name=train_segmentation_model
 #SBATCH --nodes=1
-#SBATCH --partition=elec.gpu.q
+#SBATCH --partition=gpu_mig
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task 4
+#SBATCH --cpus-per-task=18
 #SBATCH --error=slurm_results/slurm-%j.err
 #SBATCH --output=slurm_results/slurm-%j.out
 #SBATCH --time=3-12:00:00
 
 # module load python3
-module load CUDA/12.1.1
+module load 2022
+module load Python/3.10.4-GCCcore-11.3.0
+module load CUDA/11.8.0
 
 source .venv/bin/activate
 
