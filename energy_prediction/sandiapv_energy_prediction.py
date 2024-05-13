@@ -58,7 +58,6 @@ def simulate_pv_output(system, weather_data, location):
     output_data = pd.DataFrame(index=weather_data.index)
 
     # Simulate output for each array in the system
-
     for array in system.arrays:
         #print(array)
         #print('____________________')
@@ -93,7 +92,7 @@ def fit_gaussian_to_daily_data(daily_data):
 def gaussian(x, a, b, c):
     return a * np.exp(-((x - b) ** 2) / (2 * c ** 2))
 
-def plot_energy_outputs(energy_outputs, days_to_plot=3):
+def plot_energy_outputs(data, energy_outputs, days_to_plot=3):
     plt.figure(figsize=(12, 8))
     
     if not isinstance(energy_outputs.index, pd.DatetimeIndex):
@@ -135,6 +134,13 @@ def plot_energy_outputs(energy_outputs, days_to_plot=3):
             # Plot the original daily mean energy data
             plt.plot(energy_outputs.index[start_idx:end_idx], daily_data,
                      label=f'Panel {i+1} Mean', linestyle='--', color=colors[i])
+            
+            # Plot W.value from data DataFrame
+            # Adjust the slicing based on your needs
+            start_time = energy_outputs.index[0]
+            end_time = energy_outputs.index[min(len(energy_outputs.index), days_to_plot*24) - 1]
+            plt.plot(data[start_time:end_time].index, data[start_time:end_time]['W.mean_value'], 
+                color='black', label='W.mean_value', linewidth=2, linestyle='-.')
     print(np.mean(np.array(areas)))
     plt.title('Predicted Energy Production Over Time')
     plt.xlabel('Time')
@@ -185,10 +191,11 @@ def prepare_data_for_model(energy_outputs, weather_data, panels):
 if __name__ == "__main__":
     # Load weather data
     #weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
-    weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
+    #weather_data = load_weather_data('energy_prediction/energy_data/output.csv')
+    weather_data = load_weather_data('energy_prediction/energy_data/result.csv')
     #weather_data.index = pd.to_datetime(weather_data['date_time'])
-    weather_data.index = pd.to_datetime(weather_data['timestamp'], utc=True)
-    
+    #weather_data.index = pd.to_datetime(weather_data['date_time'], utc=True)
+    weather_data.index = pd.to_datetime(weather_data['time'], utc=True)
     # Define location (example: Berlin, Germany)
     site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Amsterdam')
 
@@ -214,7 +221,7 @@ if __name__ == "__main__":
     energy_outputs.to_csv('energy_prediction/energy_data/energy_output.csv', sep=',', index=True)
     
     # Plot energy outputs
-    plot_energy_outputs(energy_outputs)
+    plot_energy_outputs(weather_data, energy_outputs)
     # Assume weather_data and panels are already loaded and processed
     prepared_data = prepare_data_for_model(energy_outputs, weather_data, panels)
     prepared_data.to_csv('energy_prediction/energy_data/model_input.csv', index=False)
