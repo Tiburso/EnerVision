@@ -1,16 +1,16 @@
-#!/usr/bin/bash
+#!/bin/bash
 
-# set job requirements
+#Set job requirements
 #SBATCH --reservation=jhs_tue2022
 #SBATCH --job-name=train_segmentation_model
 #SBATCH --nodes=1
-#SBATCH --partition=gpu_mig
-#SBATCH --gres=gpu:1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=18
+#SBATCH --gpus=1
+#SBATCH --partition=gpu_mig
 #SBATCH --error=slurm_results/slurm-%j.err
 #SBATCH --output=slurm_results/slurm-%j.out
-#SBATCH --time=3-12:00:00
+#SBATCH --time=12:00:00
 
 # module load python3
 module load 2022
@@ -19,7 +19,16 @@ module load CUDA/11.8.0
 
 source .venv/bin/activate
 
+mkdir -p wandb/$SLURM_JOBID
+
 export PYTHONPATH="$pwd:$PYTHONPATH"
+export WANDB_API_KEY=22adbd27b1e6ca485d0e8ccae6d14b4fa95ac73c
+export WANDB_DIR=wandb/$SLURM_JOBID
+export WANDB_CONFIG_DIR=wandb/$SLURM_JOBID
+export WANDB_CACHE_DIR=wandb/$SLURM_JOBID
+export WANDB_START_METHOD="thread"
+wandb login
 
 # In the future create three consecutive train scripts for each dataset
-python train_scripts/solar_dk_train.py --best_model 251115
+# python train_scripts/solar_dk_train.py --best_model 251115
+python train.py --data_path .
