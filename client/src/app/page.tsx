@@ -88,9 +88,9 @@ export default function Home() {
         // await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       } 
-
-      setLoading(false);
   }
   
   if (!isLoaded) {

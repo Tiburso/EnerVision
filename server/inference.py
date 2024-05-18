@@ -38,7 +38,14 @@ def masks_to_polygons(mask):
     for contour in contours:
         epsilon = 0.01 * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
-        polygons.append(approx)
+
+        # If the polygon area is less than 100, then it is not a valid polygon
+        if cv2.contourArea(approx) < 100:
+            continue
+
+        # If the polygon has more than 3 points, then it is a valid polygon
+        if approx.shape[0] >= 3:
+            polygons.append(approx)
 
     return polygons
 
