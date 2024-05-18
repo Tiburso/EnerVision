@@ -6,21 +6,10 @@ import cv2
 from PIL import Image
 
 import torch
-from segmentation_models_pytorch.losses import JaccardLoss
+from losses import LossJaccard
 
 from models.architectures import DeepLabModel
 from models.base import BaseModel
-
-
-class LossJaccard(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.loss = JaccardLoss(mode="multiclass")
-
-    def forward(self, y_hat, y):
-        y = y.argmax(dim=1)
-        return self.loss(y_hat, y)
-
 
 segmentation_model = None
 
