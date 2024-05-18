@@ -1,2 +1,9 @@
 fastapi
 googlemaps
+numpy
+torch
+torchvision
+pytorch-lightning[extra]
+python-dotenv
+pyproj
+git+https://github.com/qubvel/segmentation_models.pytorch
