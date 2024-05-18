@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  development:
+    build:
+      context: client
+      target: development  # Use the 'development' stage from Dockerfile.prod for development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+    command: npm run dev
