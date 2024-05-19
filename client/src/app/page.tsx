@@ -23,7 +23,7 @@ export default function Home() {
   const [solarPanels, setSolarPanels] = useState<SolarPanel[]>([]);
 
   const libraries = useMemo(() => ['places'], []);
-  const mapCenter = useMemo(() => ({ lat: 51.425722, lng: 5.50894 }), []);
+  const mapCenter = useMemo(() => ({ lat: 51.448388, lng: 5.490198 }), []);
 
   const mapOptions = useMemo<google.maps.MapOptions>(
       () => ({
@@ -118,7 +118,7 @@ export default function Home() {
                 mapContainerClassName='w-full h-4/5'
                 options={mapOptions}
                 center={mapCenter}
-                zoom={20}
+                zoom={19}
                 onLoad={handleMapLoad}
               >
 
