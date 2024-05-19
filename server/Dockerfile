@@ -13,15 +13,15 @@ COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code to the working directory
-COPY models .
+COPY models/ models/
 COPY losses.py .
 
 WORKDIR /app/server
 
-COPY server/* .
+COPY server .
 
 # Expose the port on which the application will run
 EXPOSE 8080
 
 # Run the FastAPI application using uvicorn server
-CMD ["uvicorn", "fastapi:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

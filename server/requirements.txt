@@ -3,6 +3,7 @@ googlemaps
 numpy
 torch
 torchvision
+opencv-python-headless
 pytorch-lightning[extra]
 python-dotenv
 pyproj

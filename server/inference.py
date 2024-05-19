@@ -18,7 +18,7 @@ def load_model():
     global segmentation_model
 
     model = DeepLabModel(2, backbone="resnet152")
-    model.load_state_dict(torch.load("server/segmentation_model.pth"))
+    model.load_state_dict(torch.load("segmentation_model.pth"))
     segmentation_model = BaseModel(model, LossJaccard(), None)
     segmentation_model.eval()
 
