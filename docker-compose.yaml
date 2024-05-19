@@ -5,24 +5,26 @@ services:
     build:
       context: client
       target: development  # Use the 'development' stage from Dockerfile.prod for development
-    ports:
-      - "3000:3000"
+    command: npm run dev
     env_file:
       - client/.env
+    ports:
+      - "3000:3000"
     volumes:
       - ./client:/app
-    command: npm run dev
 
   server:
     build: 
       context: .
       dockerfile: server/Dockerfile
+    command: fastapi dev main.py
+    env_file:
+      - .env
+    environment:
+      - FRONTEND_URL=http://client:3000
     ports:
       - "8080:8080"
     volumes:
       - ./server:/app/server
-    env_file:
-      - .env
-    command: fastapi dev main.py
 
   
