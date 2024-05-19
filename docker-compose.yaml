@@ -8,6 +8,8 @@ services:
     command: npm run dev
     env_file:
       - client/.env
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://server:8080
     ports:
       - "3000:3000"
     volumes:

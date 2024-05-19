@@ -26,11 +26,7 @@ async def lifespan(app: FastAPI):
     unload_google_maps_api()
 
 
-origins = [
-    "http://localhost",
-    "http://localhost:3000",
-    os.getenv("FRONTEND_URL"),
-]
+origins = ["*"]
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(

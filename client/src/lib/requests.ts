@@ -4,11 +4,13 @@ export interface SolarPanel {
     polygon: google.maps.LatLng[]
 }
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
 export async function getSolarPanel(lat: number, lng: number): Promise<Partial<SolarPanel[]>> {
     const center = `${lat},${lng}`;
 
     try {
-        const response = await fetch(`http://localhost:8000/segmentation?center=${center}`);
+        const response = await fetch(`${BACKEND_URL}/segmentation?center=${center}`);
 
         const data = await response.json();
 
