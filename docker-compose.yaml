@@ -1,12 +1,28 @@
 version: '3.8'
 
 services:
-  development:
+  client:
     build:
       context: client
       target: development  # Use the 'development' stage from Dockerfile.prod for development
     ports:
       - "3000:3000"
+    env_file:
+      - client/.env
     volumes:
       - ./client:/app
     command: npm run dev
+
+  server:
+    build: 
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app/server
+    env_file:
+      - .env
+    command: fastapi dev main.py
+
+  
