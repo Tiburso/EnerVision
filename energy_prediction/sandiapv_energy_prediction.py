@@ -30,15 +30,24 @@ def get_pv_system(panel):
     'thin-film': {'pdc0': 180, 'gamma_pdc': -0.002},
     'bifacial': {'pdc0': 210, 'gamma_pdc': -0.004}
     } 
-    'lllll'
-    module_parameters = module_specs[panel['module_type']]#{'pdc0': 200, 'gamma_pdc': -0.004}  
     
+    module_parameters = module_specs[panel['module_type']]#{'pdc0': 200, 'gamma_pdc': -0.004}  
+    inverter_pdc0 = module_parameters['pdc0'] # Assuming an array of 10 modules
+        # Choose inverter efficiency based on pdc0 range
+    if inverter_pdc0 > 200:
+        eta_inv_nom = 0.98
+    else:
+        eta_inv_nom = 0.96
+    inverter_parameters = {
+        'pdc0': inverter_pdc0,
+        'eta_inv_nom': eta_inv_nom
+    }
     mount = pvsystem.FixedMount(surface_tilt=panel['tilt'], surface_azimuth=panel['azimuth'])
 
-    inverter_parameters = {'pdc0': 5000, 'eta_inv_nom': 0.96}
+    #inverter_parameters = {'pdc0': 5000, 'eta_inv_nom': 0.96}
     array_one = (pvsystem.Array( mount=mount, 
                                 module_parameters=module_parameters,
-                                temperature_model_parameters= temperature.TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_polymer'],
+                                temperature_model_parameters= panel['temperature']
                                 #module_type = 'monocrystalline'
                                 ))
     return pvsystem.PVSystem(name = 'system1',

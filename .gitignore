@@ -178,3 +178,5 @@ energy_prediction/output.csv
 tb_logs/
 client/
 server/
+energy_prediction/energy_data/sensitivity_analysis_results.csv
+energy_prediction/energy_data/dataset_to_train_model.csv
