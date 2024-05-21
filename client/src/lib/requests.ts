@@ -1,10 +1,7 @@
-export interface SolarPanel {
-    id: number
-    center: google.maps.LatLng
-    polygon: google.maps.LatLng[]
-}
+"use server";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+import { SolarPanel, BACKEND_URL } from "@/lib/types";
+
 
 export async function getSolarPanel(lat: number, lng: number): Promise<Partial<SolarPanel[]>> {
     const center = `${lat},${lng}`;

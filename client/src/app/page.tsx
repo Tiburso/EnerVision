@@ -14,7 +14,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { Searchbar } from '@/components/searchbar';
 import { SolarPanelF } from '@/components/solarPanel';
 
-import { getSolarPanel, SolarPanel } from '@/lib/requests';
+import { getSolarPanel } from '@/lib/requests';
+import { SolarPanel } from '@/lib/types';
 
 export default function Home() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
