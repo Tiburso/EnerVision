@@ -2,7 +2,6 @@
 
 import { SolarPanel, BACKEND_URL } from "@/lib/types";
 
-
 export async function getSolarPanel(lat: number, lng: number): Promise<Partial<SolarPanel[]>> {
     const center = `${lat},${lng}`;
 
@@ -12,8 +11,8 @@ export async function getSolarPanel(lat: number, lng: number): Promise<Partial<S
         const data = await response.json();
 
         return data["panels"].map((panel: any) => ({
-            center: new google.maps.LatLng(panel.center[0], panel.center[1]),
-            polygon: panel.polygon.map((point: number[]) => new google.maps.LatLng(point[0], point[1]))
+            center: { lat: panel.center[0], lng: panel.center[1] },
+            polygon: panel.polygon.map((point: number[]) => ({ lat: point[0], lng: point[1] })),
         }));
 
     } catch (error) {
