@@ -8,11 +8,12 @@ import React from 'react';
 import { useState } from 'react';
 
 import { LineGraph } from './graph';
+import { LatLng } from '@/lib/types';
 
 interface SolarPanelProps {
     key: number
-    center: google.maps.LatLng
-    polygon: google.maps.LatLng[]
+    center: LatLng
+    polygon: LatLng[]
 }
 
 const SolarPanelF: React.FC<SolarPanelProps> = ({ key, center, polygon, }) => {

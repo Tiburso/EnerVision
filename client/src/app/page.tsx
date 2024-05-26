@@ -78,8 +78,8 @@ export default function Home() {
         const newSolarPanels = results.filter((result) => {
           return solarPanels.every((solarPanel) => {
             return result && 
-              solarPanel.center.lat() !== result.center.lat() &&
-              solarPanel.center.lng() !== result.center.lng();
+              solarPanel.center.lat !== result.center.lat &&
+              solarPanel.center.lng !== result.center.lng;
           });
         });
 
