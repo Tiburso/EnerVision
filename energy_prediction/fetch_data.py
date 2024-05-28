@@ -87,7 +87,7 @@ def process_weather_data(weather_df: pd.DataFrame, lat: float, lon: float) -> pd
     
     return weather_df
 # %%
-timezone = 'Europe/Amsterdam'timezone = 'Europe/Amsterdam'
+timezone = 'Europe/Amsterdam'
 
 # Whole year of 2023
 start_date = '20230101'
@@ -134,6 +134,34 @@ def merge_csv_files(file_pattern):
 quarterly_output_df = merge_csv_files('C:/Users/20193362/Desktop/datadujuan/*.csv')
 
 # %%
+def prepare_data_for_model(energy_outputs, weather_data):
+    model_data = []
+
+    # Process data day by day
+    for day in range(365):  # Assuming you have a full year of data
+        start_idx = day * 24
+        end_idx = (day + 1) * 24
+
+        # Extract daily weather data and energy outputs
+        daily_weather = weather_data.iloc[start_idx:end_idx]
+        daily_data = energy_outputs['p_mp'][start_idx:end_idx]
+
+        if popt is not None:
+            row = {
+                # Store sequences as lists in the DataFrame cell
+                'temperature_sequence': daily_weather['T'].tolist(),
+                'wind_speed_sequence': daily_weather['FH'].tolist(),
+                'dni_sequence': daily_weather['dni'].tolist(),
+                'dhi_sequence': daily_weather['dhi'].tolist(),
+                'global_irradiance_sequence': daily_weather['ghi'].tolist(),
+                'gaussian': popt.tolist()
+            }
+            model_data.append(row)
+
+    return pd.DataFrame(model_data)
+
+
+# %%
 # From quarterly solar output data to hourly
 hourly_output_df = quarterly_output_df[quarterly_output_df['time'].dt.minute == 0]
 hourly_output_df = hourly_output_df.set_index('time')
@@ -148,3 +176,6 @@ merge = merge.dropna()
 
 # Save as a csv file
 merge.to_csv('result.csv', sep=',', index=True, encoding='utf-8')
+
+# %%
+prepare_data_for_model(hourly_output_df, weather_df)
