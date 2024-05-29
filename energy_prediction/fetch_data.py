@@ -40,7 +40,7 @@ def get_hourly_weather_data_for_pvlib(stations, start_date, end_date, timezone =
     # correct units
     weather_df['T'] = weather_df['T'] / 10          # is in 0.1 degrees C, to degrees C
     weather_df['Q'] = weather_df['Q'] * (1 / 0.36)  # is in J/m2, to W / m2
-    weather_df['FH'] = weather_df['FH']             
+    weather_df['FH'] = weather_df['FH'] * 10 # from 0.1 m/s to m/s         
     
     # create date_time index, convert timezone
     weather_df['hour'] = weather_df['hour'] - 1     # is from 1-24, to 0-23
