@@ -7,6 +7,7 @@ from glob import glob
 
 from pvlib import pvsystem, modelchain, location, irradiance
 from pvlib.solarposition import get_solarposition
+from pvlib import irradiance, solarposition
 
 # %%
 def get_hourly_weather_data_for_pvlib(stations, start_date, end_date, timezone = 'UTC'):
@@ -39,7 +40,7 @@ def get_hourly_weather_data_for_pvlib(stations, start_date, end_date, timezone =
     # correct units
     weather_df['T'] = weather_df['T'] / 10          # is in 0.1 degrees C, to degrees C
     weather_df['Q'] = weather_df['Q'] * (1 / 0.36)  # is in J/m2, to W / m2
-    weather_df['FH'] = weather_df['FH']             
+    weather_df['FH'] = weather_df['FH'] * 10 # from 0.1 m/s to m/s         
     
     # create date_time index, convert timezone
     weather_df['hour'] = weather_df['hour'] - 1     # is from 1-24, to 0-23
@@ -53,40 +54,53 @@ def get_hourly_weather_data_for_pvlib(stations, start_date, end_date, timezone =
 
     return weather_df
 
+def process_weather_data(weather_df: pd.DataFrame, lat: float, lon: float) -> pd.DataFrame:
+    """
+    Process weather data to calculate DNI and DHI.
+
+    Parameters:
+    - weather_df: DataFrame containing weather data with datetime index, temperature (T), and GHI (Q).
+    - lat: Latitude of the location.
+    - lon: Longitude of the location.
+
+    Returns:
+    - DataFrame: Processed weather data with added DNI, DHI, no NaN values.
+    """
+    # Get solar position for the dates / times
+    solpos_df = solarposition.get_solarposition(
+        weather_df.index, latitude=lat,
+        longitude=lon, altitude=0,
+        temperature=weather_df['T']
+    )
+    solpos_df.index = weather_df.index
+
+    # Method 'Erbs' to go from GHI to DNI and DHI
+    irradiance_df = irradiance.erbs(weather_df['Q'], solpos_df['zenith'], weather_df.index)
+    irradiance_df['ghi'] = weather_df['Q']
+
+    # Add DNI and DHI to weather_df
+    columns = ['dni', 'dhi']
+    weather_df[columns] = irradiance_df[columns]
+
+    # Fill NaN values with 0
+    weather_df.fillna(0, inplace=True)
+    
+    return weather_df
 # %%
+timezone = 'Europe/Amsterdam'
+
 # Whole year of 2023
 start_date = '20230101'
 end_date = '20231231'
-
-timezone = 'Europe/Amsterdam'
-
 # Eindhoven KNMI STATION
 station = '370'
 lat = 51.449772459909
 lon = 5.3770039280214
-
 # Function get_hourly_weather_data_for_pvlib defined in full code overview below
 weather_df = get_hourly_weather_data_for_pvlib(station, start_date, end_date, timezone)
+weather_df = process_weather_data(weather_df, lat, lon)
 
-# %%
-# Get solar position for the dates / times
-solpos_df = get_solarposition(
-    weather_df.index, latitude = lat,
-    longitude = lon, altitude = 0,
-    temperature = weather_df['T'])
-solpos_df.index = weather_df.index
 
-# Method 'Erbs' to go from GHI to DNI and DHI
-irradiance_df = irradiance.erbs(weather_df['Q'], solpos_df['zenith'], weather_df.index)
-irradiance_df['ghi'] = weather_df['Q']
-
-# %%
-# Add DNI and DHI to weather_df
-columns = ['dni', 'dhi']
-weather_df[columns] = irradiance_df[columns]
-
-# Fill NaN values with 0
-weather_df.fillna(0, inplace=True)
 
 # %%
 def read_and_process_csv(file_path):
@@ -120,6 +134,34 @@ def merge_csv_files(file_pattern):
 quarterly_output_df = merge_csv_files('C:/Users/20193362/Desktop/datadujuan/*.csv')
 
 # %%
+def prepare_data_for_model(energy_outputs, weather_data):
+    model_data = []
+
+    # Process data day by day
+    for day in range(365):  # Assuming you have a full year of data
+        start_idx = day * 24
+        end_idx = (day + 1) * 24
+
+        # Extract daily weather data and energy outputs
+        daily_weather = weather_data.iloc[start_idx:end_idx]
+        daily_data = energy_outputs['p_mp'][start_idx:end_idx]
+
+        if popt is not None:
+            row = {
+                # Store sequences as lists in the DataFrame cell
+                'temperature_sequence': daily_weather['T'].tolist(),
+                'wind_speed_sequence': daily_weather['FH'].tolist(),
+                'dni_sequence': daily_weather['dni'].tolist(),
+                'dhi_sequence': daily_weather['dhi'].tolist(),
+                'global_irradiance_sequence': daily_weather['ghi'].tolist(),
+                'gaussian': popt.tolist()
+            }
+            model_data.append(row)
+
+    return pd.DataFrame(model_data)
+
+
+# %%
 # From quarterly solar output data to hourly
 hourly_output_df = quarterly_output_df[quarterly_output_df['time'].dt.minute == 0]
 hourly_output_df = hourly_output_df.set_index('time')
@@ -134,3 +176,6 @@ merge = merge.dropna()
 
 # Save as a csv file
 merge.to_csv('result.csv', sep=',', index=True, encoding='utf-8')
+
+# %%
+prepare_data_for_model(hourly_output_df, weather_df)
