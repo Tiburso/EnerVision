@@ -1,0 +1,5 @@
+machine_learning
+client
+.venv
+*.ipynb
+*.pyc

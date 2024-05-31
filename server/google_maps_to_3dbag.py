@@ -30,7 +30,14 @@ def unload_google_maps_api():
 
 def check_cache(center: str):
     """This function will check if the corresponding image is already in the cache.
-    If it is, it will return the image. If it is not, it will return None."""
+    If it is, it will return the image. If it is not, it will return None.
+
+    Args:
+        center (str): The center of the image.
+
+    Returns:
+        Image: The image if it is in the cache, None otherwise.
+    """
 
     # Currently the "cache" is just gonna be a folder in the same directory as the script
 
@@ -45,7 +52,18 @@ def check_cache(center: str):
         return None
 
 
-def read_image(image, center: str):
+def read_image(image, center: str) -> Image:
+    """Read the image by savinng it as a file and then deleting
+    that file afterwards
+
+    Args:
+        image: The image to be saved.
+        center (str): The center of the image.
+
+    Returns:
+        Image: The image.
+    """
+
     with open(f"cache/{center}.png", "wb") as f:
         for chunk in image:
             f.write(chunk)
@@ -59,7 +77,16 @@ def read_image(image, center: str):
     return img
 
 
-def fetch_google_maps_static_image(center: str):
+def fetch_google_maps_static_image(center: str) -> Image:
+    """Fetch the static image from Google Maps.
+
+    Args:
+        center (str): The center of the image.
+
+    Returns:
+        Image: The image.
+    """
+
     global ZOOM, IMAGE_SIZE, gmaps
     maptype = "satellite"
 
@@ -80,7 +107,17 @@ def fetch_google_maps_static_image(center: str):
     return image
 
 
-def pixels_to_lat_lng(center: str, pixel: tuple):
+def pixels_to_lat_lng(center: str, pixel: tuple) -> tuple:
+    """Convert the pixel to latitude and longitude.
+
+    Args:
+        center (str): The center of the image.
+        pixel (tuple): The pixel to be converted.
+
+    Returns:
+        tuple: The latitude and longitude.
+    """
+
     global ZOOM, IMAGE_SIZE
 
     x, y = pixel

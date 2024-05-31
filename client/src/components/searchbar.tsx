@@ -12,6 +12,13 @@ export interface SearchbarProps {
   onClick?: (val: LatLng) => void
 }
 
+/**
+ * The Searchbar component is a functional component that renders a search bar for possible 
+ * google maps locations.
+ * 
+ * @param className - The class name of the search bar.
+ * @param onClick - The function to call when a location is clicked. 
+ */
 export function Searchbar({className, onClick} : SearchbarProps) {
   const {
     ready,

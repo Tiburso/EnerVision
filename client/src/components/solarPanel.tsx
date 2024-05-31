@@ -8,16 +8,23 @@ import React from 'react';
 import { useState } from 'react';
 
 import { LineGraph } from './graph';
+import { LatLng } from '@/lib/types';
 
 interface SolarPanelProps {
     key: number
-    center: google.maps.LatLng
-    polygon: google.maps.LatLng[]
+    center: LatLng
+    polygon: LatLng[]
 }
 
+/** 
+ * The SolarPanelF component is a functional component that renders a solar panel on the embedded google maps.
+ * 
+ * @param key - The key of the solar panel.
+ * @param center - The center of the solar panel in lat lng.
+ * @param polygon - The polygon path of the solar panel.
+*/
 const SolarPanelF: React.FC<SolarPanelProps> = ({ key, center, polygon, }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const data = [{name: 'Page A', uv: 400}, {name: 'Page B', uv: 100}];
     
     return (
         <>

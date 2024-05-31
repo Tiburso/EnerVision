@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from torch import float32
 import torchvision.transforms.v2 as transforms
 
@@ -18,7 +20,7 @@ def load_model():
     global segmentation_model
 
     model = DeepLabModel(2, backbone="resnet152")
-    model.load_state_dict(torch.load("server/segmentation_model.pth"))
+    model.load_state_dict(torch.load("segmentation_model.pth"))
     segmentation_model = BaseModel(model, LossJaccard(), None)
     segmentation_model.eval()
 
@@ -29,7 +31,16 @@ def clean_up_model():
     segmentation_model = None
 
 
-def masks_to_polygons(mask):
+def masks_to_polygons(mask: torch.Tensor) -> list:
+    """Convert the segmentation mask to polygons.
+
+    Args:
+        mask (torch.Tensor): The segmentation mask.
+
+    Returns:
+        list: A list of polygons.
+    """
+
     mask = mask.cpu().numpy().astype("uint8")
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -38,12 +49,28 @@ def masks_to_polygons(mask):
     for contour in contours:
         epsilon = 0.01 * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
-        polygons.append(approx)
+
+        # If the polygon area is less than 100, then it is not a valid polygon
+        if cv2.contourArea(approx) < 100:
+            continue
+
+        # If the polygon has more than 3 points, then it is a valid polygon
+        if approx.shape[0] >= 3:
+            polygons.append(approx)
 
     return polygons
 
 
-def find_polygon_centers(polygons):
+def find_polygon_centers(polygons: list) -> list:
+    """Find the center of the polygons.
+
+    Args:
+        polygons (list): A list of polygons.
+
+    Returns:
+        list: A list of centers.
+    """
+
     centers = []
     for polygon in polygons:
         moments = cv2.moments(polygon)
@@ -56,44 +83,17 @@ def find_polygon_centers(polygons):
     return centers
 
 
-def find_polygon_boundaries(polygons):
-    """Given the polygons list find the lower left and upper right corners.
+def segmentation_inference(image: Image.Image) -> Tuple[list, list]:
+    """Executes the segmentation model on the given image and returns the polygons, centers
+    and boundaries.
 
     Args:
-        polygons (_type_): _description_
+        image (Image.Image): The image to run the segmentation model on.
+
+    Returns:
+        Tuple[list, list]: The polygons, centers.
     """
 
-    extreme_points_per_polygon = []
-
-    # Iterate through each polygon
-    for polygon in polygons:
-        # Calculate the top left and bottom right points for the current polygon
-        top_left = np.min(polygon, axis=0)[0]
-        bottom_right = np.max(polygon, axis=0)[0]
-
-        # Append the extreme points to the list
-        extreme_points_per_polygon.append((top_left, bottom_right))
-
-    return extreme_points_per_polygon
-
-
-def plot_mask(mask, polygons, centers):
-    from matplotlib import pyplot as plt
-
-    plt.imshow(mask[0].cpu().numpy(), cmap="gray")
-
-    # show the polygons
-    for polygon in polygons:
-        plt.plot(polygon[:, 0, 0], polygon[:, 0, 1], "r-")
-
-    # show the centers
-    for center in centers:
-        plt.plot(center[0], center[1], "ro")
-
-    plt.show()
-
-
-def segmentation_inference(image: Image.Image):
     transform = transforms.Compose(
         [
             transforms.ToImage(),
@@ -111,6 +111,5 @@ def segmentation_inference(image: Image.Image):
 
     polygons = masks_to_polygons(mask.squeeze(0))
     centers = find_polygon_centers(polygons)
-    boundaries = find_polygon_boundaries(polygons)
 
-    return polygons, centers, boundaries
+    return polygons, centers

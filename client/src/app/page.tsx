@@ -7,14 +7,15 @@ import {
 } from '@react-google-maps/api';
 
 import React from 'react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Searchbar } from '@/components/searchbar';
 import { SolarPanelF } from '@/components/solarPanel';
 
-import { getSolarPanel, SolarPanel } from '@/lib/requests';
+import { getSolarPanel } from '@/lib/requests';
+import { SolarPanel } from '@/lib/types';
 
 export default function Home() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
@@ -23,7 +24,8 @@ export default function Home() {
   const [solarPanels, setSolarPanels] = useState<SolarPanel[]>([]);
 
   const libraries = useMemo(() => ['places'], []);
-  const mapCenter = useMemo(() => ({ lat: 51.425722, lng: 5.50894 }), []);
+  // Start in the middle of TU/e campus
+  const mapCenter = useMemo(() => ({ lat: 51.448388, lng: 5.490198 }), []);
 
   const mapOptions = useMemo<google.maps.MapOptions>(
       () => ({
@@ -43,6 +45,7 @@ export default function Home() {
       libraries: libraries as any,
   });
 
+  // Save the mapInstance for ease of use in the callbacks
   const handleMapLoad = (map: google.maps.Map) => {
     setMapInstance(map);
   };
@@ -77,20 +80,17 @@ export default function Home() {
         const newSolarPanels = results.filter((result) => {
           return solarPanels.every((solarPanel) => {
             return result && 
-              solarPanel.center.lat() !== result.center.lat() &&
-              solarPanel.center.lng() !== result.center.lng();
+              solarPanel.center.lat !== result.center.lat &&
+              solarPanel.center.lng !== result.center.lng;
           });
         });
 
         setSolarPanels([...solarPanels, ...newSolarPanels] as SolarPanel[]);
-
-        // sleep for 1 second
-        // await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       } 
-
-      setLoading(false);
   }
   
   if (!isLoaded) {
@@ -118,7 +118,7 @@ export default function Home() {
                 mapContainerClassName='w-full h-4/5'
                 options={mapOptions}
                 center={mapCenter}
-                zoom={20}
+                zoom={19}
                 onLoad={handleMapLoad}
               >
 
