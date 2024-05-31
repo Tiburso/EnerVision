@@ -1,3 +1,6 @@
+/**
+ * Types and constants used throughout the application
+ */
 export interface LatLng {
     lat: number
     lng: number

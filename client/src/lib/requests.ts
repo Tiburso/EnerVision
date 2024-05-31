@@ -2,6 +2,14 @@
 
 import { SolarPanel, BACKEND_URL } from "@/lib/types";
 
+/**
+ * Function sends a request to the backend service to get a segmentation analysis of the 
+ * google maps static image
+ * 
+ * @param lat - The latitude of the center of the google maps static image.
+ * @param lng - The longitude of the center of the google maps static image.
+ * @returns - A promise of the solar panel segmentation analysis.
+ */
 export async function getSolarPanel(lat: number, lng: number): Promise<Partial<SolarPanel[]>> {
     const center = `${lat},${lng}`;
 

@@ -7,7 +7,7 @@ import {
 } from '@react-google-maps/api';
 
 import React from 'react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -24,6 +24,7 @@ export default function Home() {
   const [solarPanels, setSolarPanels] = useState<SolarPanel[]>([]);
 
   const libraries = useMemo(() => ['places'], []);
+  // Start in the middle of TU/e campus
   const mapCenter = useMemo(() => ({ lat: 51.448388, lng: 5.490198 }), []);
 
   const mapOptions = useMemo<google.maps.MapOptions>(
@@ -44,6 +45,7 @@ export default function Home() {
       libraries: libraries as any,
   });
 
+  // Save the mapInstance for ease of use in the callbacks
   const handleMapLoad = (map: google.maps.Map) => {
     setMapInstance(map);
   };
@@ -84,9 +86,6 @@ export default function Home() {
         });
 
         setSolarPanels([...solarPanels, ...newSolarPanels] as SolarPanel[]);
-
-        // sleep for 1 second
-        // await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(error);
       } finally {
