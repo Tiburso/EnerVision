@@ -13,22 +13,30 @@ from losses import LossJaccard
 from models.architectures import DeepLabModel
 from models.base import BaseModel
 
+from energy_prediction import EnergyPredictionPL
+
 segmentation_model = None
+energy_prediction_model = None
 
 
-def load_model():
-    global segmentation_model
+def load_models():
+    global segmentation_model, energy_prediction_model
 
     model = DeepLabModel(2, backbone="resnet152")
     model.load_state_dict(torch.load("segmentation_model.pth"))
     segmentation_model = BaseModel(model, LossJaccard(), None)
     segmentation_model.eval()
 
+    energy_prediction_model = EnergyPredictionPL.load_from_checkpoint(
+        "energy_prediction_model.ckpt"
+    )
 
-def clean_up_model():
-    global segmentation_model
+
+def clean_up_models():
+    global segmentation_model, energy_prediction_model
 
     segmentation_model = None
+    energy_prediction_model = None
 
 
 def masks_to_polygons(mask: torch.Tensor) -> list:

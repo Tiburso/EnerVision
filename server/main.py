@@ -12,17 +12,17 @@ from server.google_maps_to_3dbag import (
     fetch_google_maps_static_image,
     pixels_to_lat_lng,
 )
-from server.inference import segmentation_inference, load_model, clean_up_model
+from server.inference import segmentation_inference, load_models, clean_up_models
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     load_google_maps_api()
-    load_model()
+    load_models()
 
     yield
 
-    clean_up_model()
+    clean_up_models()
     unload_google_maps_api()
 
 
