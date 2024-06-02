@@ -30,6 +30,7 @@ def load_models():
     energy_prediction_model = EnergyPredictionPL.load_from_checkpoint(
         "energy_prediction_model.ckpt"
     )
+    energy_prediction_model.eval()
 
 
 def clean_up_models():
