@@ -1,0 +1,16 @@
+name;sid;orientation;tilt;inverter brand;ninverters;npanels;panel brand;panel max power;type_panel;width;height;url
+sys1-Vanneau29;23471;180;1;SMA sunny boy 3000HF30;1;16;Jinko;195W;monocrystalline;808;1580;https://www.renugen.co.uk/jinko-solar-jkm195m-72-195-watt-solar-panel-module/
+TexelPV;13000;135;40;Piko Kostal 5.5;1;19;ZNShine 275-96;275W;monocrystalline;1575;1082;https://de.enfsolar.com/pv/panel-datasheet/crystalline/15775
+bomengarage;77899;158;10;Enphase IQ7+;6;6;QCells G5;335W;monocrystalline;1722;1134;https://qcells.com.au/product/q-maxx-g5/
+themansion;96352;176;35;SolarEdge;1;12;SunTech STP305 MOUR;305W;monocrystalline;1650;992;https://www.secondsol.com/nl/anzeige/22033/modules/crystalline/mono/suntech-power/suntech-power-stp-305-20wfw-5-bb
+Steuten.S;32174;137;40;solaredge;1;21;DMEGC;320W;monocrystalline;1665;1002;https://www.warmteservice.nl/Duurzaam/Zonnepanelen/Zonnepaneel/DMEGC-Mono-zonnepaneel-Perc-all-Black-/p/07159030
+Araminta station;28156;191;23;SMA SB3000-TL21;1;14;Yingli Panda YL260C-30b;260W;monocrystalline;1650;990;https://www.pvxchange.com/Solarmodule/Yingli-Solar/YL260C-30b-Panda-2105814
+M57;88330;225;45;SolarEdge SE9k;1;20;Longi;300W;monocrystalline;1660;1000;https://solargarant.nl/longi-mono-300-wp/
+Elsendorp;84071;270;40;SolarEdge SE3000H-RW000NNN2;1;10;LONGI LR6-60PE-300M;300W;monocrystalline;1660;1000;https://solargarant.nl/longi-mono-300-wp/
+ZonNest;24499;20;35;JFY;2;24;Delta;300W;monocrystalline;1640;992;https://www.renugen.co.uk/ecodelta-eco-300m-300w-full-black-solar-panel-module/
+RSH-PV;58815;135;40;SE2200H +SE5000H;2;12;12x SF170S + 20x PS350;170W;thin-film;1257;997;https://apsolar.nl/wp-content/uploads/3-Solar-Frontier-170Wp.pdf
+solar edge parkeerschuur;67109;135;20;SolarEdge 4000;1;9;Sharp 320;320W;monocrystalline;1684;1002;https://www.sharp.co.uk/320-wp-mono-nujc320b
+IenS;56126;180;40;Samil Power Solar River 1100TL;1;5;Sako 250;250W;polycrystalline;1640;990;https://sakopower.com/sako-250w-polycrystalline-solar-panel
+SolarER;36256;135;49;Power one;1;16;Risen Energy;250W;polycrystalline;1650;990;https://www.renugen.co.uk/risen-energy-rsm60-6-250p-250-watt-solar-panel-module/
+MichielB;43872;97;30;SolarEdge;1;12;JA solar;325W;monocrystalline;1690;996;https://shop.libra.energy/nl_NL/product/jam60s17-325l-hc-bk
+Yaldair_Power;83018;225;45;SolarEdge SE7k;1;24;Suntech STP325S - A20/Wfh;325W;monocrystalline;1680;100;https://irp-cdn.multiscreensite.com/e5f0bd80/files/uploaded/Suntech%20320%20Wp%20mono%20full%20black%20half%20cells.pdf
