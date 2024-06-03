@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+
+#SBATCH --job-name=train_segmentation_model
+#SBATCH --nodes=1
+#SBATCH --partition=elec.gpu.q
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task 4
+#SBATCH --error=slurm_results/slurm-%j.err
+#SBATCH --output=slurm_results/slurm-%j.out
+#SBATCH --time=3-12:00:00
+
+# module load python3
+module load CUDA/12.1.1
+
+source .venv/bin/activate
+
+export PYTHONPATH="$pwd:$PYTHONPATH"
+
+# In the future create three consecutive train scripts for each dataset
+python train_scripts/solar_dk_train.py --best_model 251115

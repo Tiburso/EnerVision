@@ -2,7 +2,8 @@ import pytorch_lightning as pl
 from torch import nn
 import torch
 
-class ImageRecognitionModel(nn.Module):
+
+class BaseCNN(nn.Module):
     def __init__(self, hidden_size, num_classes):
         super().__init__()
         self.model = nn.Sequential(

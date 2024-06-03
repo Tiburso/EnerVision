@@ -200,11 +200,10 @@ def prepare_data_for_model(energy_outputs, weather_data, panels):
 if __name__ == "__main__":
     # Load weather data
     #weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
-    #weather_data = load_weather_data('energy_prediction/energy_data/output.csv')
-    weather_data = load_weather_data('energy_prediction/energy_data/result.csv')
+    weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
     #weather_data.index = pd.to_datetime(weather_data['date_time'])
-    #weather_data.index = pd.to_datetime(weather_data['date_time'], utc=True)
-    weather_data.index = pd.to_datetime(weather_data['time'], utc=True)
+    weather_data.index = pd.to_datetime(weather_data['timestamp'], utc=True)
+    
     # Define location (example: Berlin, Germany)
     site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Amsterdam')
 
