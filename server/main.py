@@ -61,3 +61,16 @@ async def segment_solar_panel(center: str):
     return {
         "panels": panels,
     }
+
+
+@app.get("/predictions")
+async def predict_pv_energy(center: str, type: str):
+    # Get the weather forecast for the next 2 days
+
+    # Get the azimuth and the tilt of the solar panels from the google api
+
+    # Join all of them together and infer the energy production of the solar panels
+    # with the model
+
+    # Return the normal parameters for the today and tomorrow
+    pass

@@ -8,7 +8,7 @@ import sys
 import requests
 from datetime import datetime, timedelta
 
-from pvlib import pvsystem, modelchain, location, irradiance
+from pvlib import irradiance
 from pvlib.solarposition import get_solarposition
 from pvlib import irradiance, solarposition
 
@@ -18,6 +18,8 @@ logger.setLevel(os.environ.get("LOG_LEVEL", logging.INFO))
 
 EINDHOVEN_LAT = 51.4416
 EINDHOVEN_LON = 5.4697
+DATASET_NAME = "harmonie_arome_cy40_p1"
+DATASET_VERSION = "0.2"
 
 
 class OpenDataAPI:
@@ -54,11 +56,14 @@ def download_file_from_temporary_download_url(download_url, filename):
     logger.info(f"Successfully downloaded dataset file to {filename}")
 
 
-def unpack_tar_file(tar_path: str):
+def unpack_tar_file(tar_path: str) -> str:
     """Extract all contents of a tar file in the same directory as the tar file.
 
     Args:
         tar_path (str): Path to the tar file to extract
+
+    Returns:
+        str: Path to the folder where the tar file was extracted
     """
 
     # Create destination folder path
@@ -71,8 +76,22 @@ def unpack_tar_file(tar_path: str):
     with tarfile.open(tar_path, "r") as tar:
         tar.extractall(path=dest_folder)
 
+    # Remove the tar file
+    os.remove(tar_path)
 
-def read_grib_folder(grib_folder: str):
+    return dest_folder
+
+
+def read_grib_folder(grib_folder: str) -> pd.DataFrame:
+    """Read all grib files in a folder and extract the weather data for Eindhoven.
+
+    Args:
+        grib_folder (str): Path to the folder containing the grib files
+
+    Returns:
+        pd.DataFrame: DataFrame containing the weather data for Eindhoven
+    """
+
     global EINDHOVEN_LON, EINDHOVEN_LAT
 
     # List needed parameters, see code matrix KNMI
@@ -101,8 +120,6 @@ def read_grib_folder(grib_folder: str):
                 (lats - EINDHOVEN_LAT) ** 2 + (lons - EINDHOVEN_LON) ** 2
             )
             min_index = distance.argmin()
-            nearest_point_lat = lats.flat[min_index]
-            nearest_point_lon = lons.flat[min_index]
 
             data_date = str(first_message.dataDate)  # Format: YYYYMMDD
             data_time = first_message.dataTime  # Format: HHMM
@@ -118,8 +135,6 @@ def read_grib_folder(grib_folder: str):
             data_dict = {
                 "file_name": file_name,
                 "datetime": valid_datetime,  # ,
-                #'latitude': nearest_point_lat,
-                #'longitude': nearest_point_lon
             }
 
             # Extract data for each parameter
@@ -141,18 +156,18 @@ def read_grib_folder(grib_folder: str):
             data_list.append(data_dict)
 
     # Convert list of dictionaries to DF
-    gribData = pd.DataFrame(data_list)
-    df = gribData.copy()
+    weather_df = pd.DataFrame(data_list)
 
-    df["windSpeed"] = np.sqrt(df["windU"] ** 2 + df["windV"] ** 2)
-    df["temperature"] = df["temperature"] - 272.15
+    weather_df["windSpeed"] = np.sqrt(
+        weather_df["windU"] ** 2 + weather_df["windV"] ** 2
+    )
+    weather_df["temperature"] = weather_df["temperature"] - 272.15
 
-    df["globalRadiation"] = df["globalRadiation"].fillna(0)
+    weather_df["globalRadiation"] = weather_df["globalRadiation"].fillna(0)
     # Calculate the difference between consecutive rows
-    df["Q"] = df["globalRadiation"].diff()
-    df["Q"] = df["Q"] / 3600
+    weather_df["Q"] = weather_df["globalRadiation"].diff()
+    weather_df["Q"] = weather_df["Q"] / 3600
 
-    weather_df = df.copy()
     # Get solar position for the dates / times
     solpos_df = solarposition.get_solarposition(
         weather_df["datetime"],
@@ -178,10 +193,19 @@ def read_grib_folder(grib_folder: str):
     df = df[:-1]
     df = df.fillna(0)
 
+    # Remove the folder with the grib files
+    os.rmdir(grib_folder)
+
     return df
 
 
 def group_by_data_and_cache(df: pd.DataFrame):
+    """Group the weather data by day and cache it in a CSV file.
+
+    Args:
+        df (pd.DataFrame): The full dataframe containing the weather data for Eindhoven per hour
+    """
+
     df["date"] = df["datetime"].dt.date
     df = df.drop(["file_name", "datetime"], axis=1)
     grouped = df.groupby("date")
@@ -198,26 +222,33 @@ def group_by_data_and_cache(df: pd.DataFrame):
     daily_data = daily_data[keeps.keys()].rename(keeps, axis=1)
     daily_data.index.name = "date"
 
+    # Get the index of the first date
     date = daily_data.index[0]
 
+    # Save it in a way that can be cached
     daily_data.to_csv(f"energy_data/{date}.csv")
 
 
 def main():
-    api_key = os.getenv("KNMI_API_KEY")
-    dataset_name = "harmonie_arome_cy40_p1"
-    dataset_version = "0.2"
-    logger.info(f"Fetching latest file of {dataset_name} version {dataset_version}")
+    global DATASET_NAME, DATASET_VERSION
 
+    api_key = os.getenv("KNMI_API_KEY")
+    # For this its ok to launch a connection to the API every time
+    # because there wont be many requests
     api = OpenDataAPI(api_token=api_key)
 
-    # sort the files in descending order and only retrieve the first file
+    # Fetch the latest 4 files and order them by creation date
     params = {"maxKeys": 4, "orderBy": "created", "sorting": "desc"}
-    response = api.list_files(dataset_name, dataset_version, params)
-    # print(response)
+
+    logger.info(f"Fetching latest file of {DATASET_NAME} version {DATASET_VERSION}")
+
+    # Sort the files in descending order and only retrieve the first file
+    response = api.list_files(DATASET_NAME, DATASET_VERSION, params)
+
+    # Warn if there was an error in the response
     if "error" in response:
         logger.error(f"Unable to retrieve list of files: {response['error']}")
-        sys.exit(1)
+        return
 
     # Filter files that end with '00.tar'
     filtered_files = [
@@ -226,14 +257,20 @@ def main():
 
     if not filtered_files:
         logger.error("No files ending with '00.tar' found")
-        sys.exit(1)
+        return
 
     # Assuming files are already sorted by creation date in the response, get the latest
     latest_file = filtered_files[0].get("filename")
     logger.info(f"Latest file is: {latest_file}")
 
-    # fetch the download url and download the file
-    response = api.get_file_url(dataset_name, dataset_version, latest_file)
+    # Fetch the download url and download the tar file
+    response = api.get_file_url(DATASET_NAME, DATASET_VERSION, latest_file)
     download_file_from_temporary_download_url(
         response["temporaryDownloadUrl"], latest_file
     )
+
+    # Untar the file into a directory
+
+    # Read the grib files and extract the data
+
+    # Group the data by date and cache it
