@@ -8,36 +8,34 @@ import React from 'react';
 import { useState } from 'react';
 
 import { LineGraph } from './graph';
-import { LatLng } from '@/lib/types';
+import { SolarPanel } from '@/lib/types';
 
 interface SolarPanelProps {
     key: number
-    center: LatLng
-    polygon: LatLng[]
+    solarPanel: SolarPanel
 }
 
 /** 
  * The SolarPanelF component is a functional component that renders a solar panel on the embedded google maps.
  * 
  * @param key - The key of the solar panel.
- * @param center - The center of the solar panel in lat lng.
- * @param polygon - The polygon path of the solar panel.
+ * @param solarPanel - The solar panel object.
 */
-const SolarPanelF: React.FC<SolarPanelProps> = ({ key, center, polygon, }) => {
+const SolarPanelF: React.FC<SolarPanelProps> = ({ key, solarPanel }) => {
     const [isOpen, setIsOpen] = useState(false);
     
     return (
         <>
             <MarkerF
                 key={key}
-                position={center}
+                position={solarPanel.center}
                 onClick={() => setIsOpen(!isOpen)}
             />
             
             {isOpen && 
             <InfoWindowF
                 key={key}
-                position={center}
+                position={solarPanel.center}
                 zIndex={1}
                 onCloseClick={() => setIsOpen(!isOpen)}
             >   
@@ -46,7 +44,7 @@ const SolarPanelF: React.FC<SolarPanelProps> = ({ key, center, polygon, }) => {
 
             <PolygonF
                 key={key}
-                path={polygon}
+                path={solarPanel.polygon}
                 options={{
                     strokeColor: '#FF0000',
                     strokeOpacity: 0.8,

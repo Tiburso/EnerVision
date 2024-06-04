@@ -50,7 +50,7 @@ async def segment_solar_panel(center: str):
     image = fetch_google_maps_static_image(center)
 
     # Run the machine learning model here
-    polygons, seg_centers, boundaries = segmentation_inference(image)
+    polygons, seg_centers, pvtypes = segmentation_inference(image)
 
     # Convert the centers and the polygon values into real world coordinates
     seg_centers = [pixels_to_lat_lng(center, seg_center) for seg_center in seg_centers]
@@ -61,8 +61,8 @@ async def segment_solar_panel(center: str):
     ]
 
     panels = [
-        {"polygon": polygon, "center": seg_center}
-        for polygon, seg_center in zip(polygons, seg_centers)
+        {"polygon": polygon, "center": seg_center, "type": pvtype}
+        for polygon, seg_center, pvtype in zip(polygons, seg_centers, pvtypes)
     ]
 
     return {

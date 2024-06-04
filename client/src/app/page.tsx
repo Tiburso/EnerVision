@@ -148,8 +148,7 @@ export default function Home() {
               {solarPanels.map((solarPanel, index) => (
                   <SolarPanelF
                     key={index}
-                    center={solarPanel.center}
-                    polygon={solarPanel.polygon}
+                    solarPanel={solarPanel}
                   />
               ))}
 

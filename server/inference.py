@@ -4,6 +4,7 @@ from torch import float32
 import torchvision.transforms.v2 as transforms
 
 import pandas as pd
+import numpy as np
 import cv2
 from PIL import Image
 
@@ -92,7 +93,59 @@ def find_polygon_centers(polygons: list) -> list:
     return centers
 
 
-def segmentation_inference(image: Image.Image) -> Tuple[list, list]:
+def infer_panel_types(image: Image, mask: torch.Tensor) -> list:
+    """Infer the panel types based on the given image, mask and centers.
+    Panel types can either be monocrytalline or polycrystalline.
+
+    Args:
+        image (Image): The image to infer the panel types from.
+        mask (torch.Tensor): The segmentation mask.
+
+    Returns:
+        list: The inferred panel types.
+    """
+
+    # Find the contours of the mask
+    mask = mask.cpu().numpy().astype("uint8")
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Create a mask with the same size as the image
+    panel_types = []
+    for contour in contours:
+        mask = np.zeros(image.size[::-1], dtype=np.uint8)
+        cv2.drawContours(mask, [contour], -1, 255, -1)
+
+        # Crop the image based on the mask
+        x, y, w, h = cv2.boundingRect(contour)
+        panel_image = image.crop((x, y, x + w, y + h))
+
+        # Convert the image to a numpy array
+        panel_image = np.array(panel_image)
+
+        # Convert the image to grayscale
+        panel_image = cv2.cvtColor(panel_image, cv2.COLOR_RGB2GRAY)
+
+        # Apply the threshold
+        _, panel_image = cv2.threshold(
+            panel_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
+
+        # Find the contours of the panel image
+        panel_contours, _ = cv2.findContours(
+            panel_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+
+        # If the panel has more than 3 contours, then it is a polycrystalline panel
+        if len(panel_contours) > 3:
+            panel_types.append("polycrystalline")
+        else:
+            panel_types.append("monocrystalline")
+
+    return panel_types
+
+
+def segmentation_inference(image: Image.Image) -> Tuple[list, list, list]:
     """Executes the segmentation model on the given image and returns the polygons, centers
     and boundaries.
 
@@ -100,7 +153,7 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list]:
         image (Image.Image): The image to run the segmentation model on.
 
     Returns:
-        Tuple[list, list]: The polygons, centers.
+        Tuple[list, list, list]: The polygons, centers and the pv types
     """
 
     transform = transforms.Compose(
@@ -118,10 +171,11 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list]:
 
     mask = segmentation_model(image).argmax(1)
 
+    pvtypes = infer_panel_types(image, mask.squeeze(0))
     polygons = masks_to_polygons(mask.squeeze(0))
     centers = find_polygon_centers(polygons)
 
-    return polygons, centers
+    return polygons, centers, pvtypes
 
 
 def energy_prediction(df: pd.DataFrame) -> List[Tuple[int, int, int]]:
