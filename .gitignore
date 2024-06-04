@@ -186,3 +186,4 @@ energy_measurement_data.csv
 solarpanels.xlsx
 
 wandb
+server/weather_data/*.csv

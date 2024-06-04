@@ -226,11 +226,14 @@ def group_by_data_and_cache(df: pd.DataFrame) -> pd.DataFrame:
     daily_data = daily_data[keeps.keys()].rename(keeps, axis=1)
     daily_data.index.name = "date"
 
+    # Remove the last row (its the day 3)
+    daily_data = daily_data[:-1]
+
     # Get the index of the first date
     date = daily_data.index[0]
 
     # Save it in a way that can be cached
-    daily_data.to_csv(f"energy_data/{date}.csv")
+    daily_data.to_csv(f"weather_data/{date}.csv")
 
     return daily_data
 
