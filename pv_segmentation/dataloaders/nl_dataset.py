@@ -8,10 +8,18 @@ import torch
 
 class NLSegmentationDataset(Dataset):
     """
-    Dataset class for loading and processing images and their segmentation masks from the 
+    Dataset class for loading and processing images and their segmentation masks from the
     COCO format annotations in the NL Solar Panel segmentation dataset.
     """
-    def __init__(self, image_dir, transforms=None, size=[640, 640], mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
+
+    def __init__(
+        self,
+        image_dir,
+        transforms=None,
+        size=[640, 640],
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225],
+    ):
         """
         Initializes the NL Solar Panel Segmentation dataset.
 
@@ -72,7 +80,7 @@ class NLSegmentationDataset(Dataset):
 
         if self.transforms:
             image, mask = self.transforms(image, mask)
-    
+
         return image, mask
 
     def create_mask(self, image_id, image_info):
@@ -94,4 +102,3 @@ class NLSegmentationDataset(Dataset):
                 ImageDraw.Draw(mask).polygon(ann["segmentation"][0], outline=1, fill=1)
 
         return mask
-

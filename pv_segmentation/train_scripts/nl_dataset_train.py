@@ -18,13 +18,13 @@ import torch.utils.data as Data
 def main(best_model="last"):
     # SET UP WEIGHTS & BIASES ENVIRONMENT
     wandb_logger = WandbLogger(
-        project = "Training model",
-        entity = "5ARIP",
+        project="Training model",
+        entity="5ARIP",
         config={
-        "learning_rate": 1e-5,
-        "architecture": "DeepLabV3+",
-        "dataset": "NL Segmentation + Germany",
-        }
+            "learning_rate": 1e-5,
+            "architecture": "DeepLabV3+",
+            "dataset": "NL Segmentation + Germany",
+        },
     )
 
     # LOAD NL DATASET -------------------------------------------------
@@ -53,7 +53,9 @@ def main(best_model="last"):
 
     # CONCAT NL AND GERMANY DATASET -----------------------------------
     train_dataset = Data.ConcatDataset([germany_train_dataset, nl_train_dataset])
-    validation_dataset = Data.ConcatDataset([germany_validation_dataset, nl_validation_dataset])
+    validation_dataset = Data.ConcatDataset(
+        [germany_validation_dataset, nl_validation_dataset]
+    )
     test_dataset = Data.ConcatDataset([germany_test_dataset, nl_test_dataset])
 
     # CREATE THE DATALOADERS
@@ -97,14 +99,12 @@ def main(best_model="last"):
         every_n_epochs=1,
         filename="{epoch:02d}-{val_jaccard:.2f}",
         auto_insert_metric_name=False,
-        verbose=True
+        verbose=True,
     )
 
     # EARLY STOPPING
     early_stopping_callback = EarlyStopping(
-        monitor="val_jaccard",
-        patience=10,
-        mode="max"
+        monitor="val_jaccard", patience=10, mode="max"
     )
 
     # CREATE TRAINER
