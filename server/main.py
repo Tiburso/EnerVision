@@ -1,5 +1,3 @@
-from typing import Union
-from dotenv import load_dotenv
 import os
 
 from contextlib import asynccontextmanager
@@ -16,7 +14,12 @@ from server.google_maps_api import (
 
 from server.weather_data_api import get_predicted_data
 
-from server.inference import segmentation_inference, load_models, clean_up_models
+from server.inference import (
+    segmentation_inference,
+    energy_prediction,
+    load_models,
+    clean_up_models,
+)
 
 
 @asynccontextmanager
@@ -84,6 +87,7 @@ async def predict_pv_energy(center: str, type: str):
     weather_data["module_type"] = type
 
     # Run the inference model for the energy production
+    predictions = energy_prediction(weather_data)
 
     # Return the normal parameters for the today and tomorrow
-    return weather_data
+    return predictions

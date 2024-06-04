@@ -1,9 +1,9 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from torch import float32
 import torchvision.transforms.v2 as transforms
 
-import numpy as np
+import pandas as pd
 import cv2
 from PIL import Image
 
@@ -13,7 +13,7 @@ from losses import LossJaccard
 from models.architectures import DeepLabModel
 from models.base import BaseModel
 
-from energy_prediction import EnergyPredictionPL
+from energy_prediction import EnergyPredictionPL, normalize_features
 
 segmentation_model = None
 energy_prediction_model = None
@@ -122,3 +122,24 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list]:
     centers = find_polygon_centers(polygons)
 
     return polygons, centers
+
+
+def energy_prediction(df: pd.DataFrame) -> List[Tuple[int, int, int]]:
+    """Predict the energy output for each day based on the given dataframe.
+
+    Args:
+        df (pd.DataFrame): The dataframe containing the desired features, each row is a day
+
+    Returns:
+        List[Tuple[int, int, int]]: The predicted energy output for each day (the gaussian parameters)
+    """
+
+    df = normalize_features(df)
+
+    # Convert the dataframe to a tensor
+    x = torch.tensor(df.values).float()
+
+    # Run the model
+    predictions = energy_prediction_model(x)
+
+    return predictions

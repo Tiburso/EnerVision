@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 import pytorch_lightning as pl
+import pandas as pd
+import numpy as np
 
 
 class EnergyPredictionModel(nn.Module):
@@ -65,3 +67,43 @@ class EnergyPredictionPL(pl.LightningModule):
         self.log("train_loss", loss)
         self.train_losses.append(loss.item())
         return loss
+
+
+def normalize_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize the features so they are usable in the model
+
+    Args:
+        df (pd.DataFrame): The dataframe containing the features
+
+    Returns:
+        pd.DataFrame: The normalized dataframe
+    """
+
+    # Normalize static numeric features
+    for feature in ["tilt", "azimuth"]:
+        mean = df[feature].mean()
+        std = df[feature].std()
+        if std > 0:
+            df[feature] = (df[feature] - mean) / std
+        else:
+            df[feature] = 0
+
+    # Normalizing dynamic features
+    dynamic_cols = [
+        "temperature_sequence",
+        "wind_speed_sequence",
+        "dni_sequence",
+        "dhi_sequence",
+        "global_irradiance_sequence",
+    ]
+
+    for col in dynamic_cols:
+        col_data = np.concatenate(df[col].values)
+        mean = col_data.mean()
+        std = col_data.std()
+        if std > 0:
+            df[col] = df[col].apply(lambda x: (np.array(x) - mean) / std)
+        else:
+            df[col] = df[col].apply(lambda x: np.zeros_like(x))
+
+    return df
