@@ -1,8 +1,8 @@
 import googlemaps.client
 import requests
 import numpy as np
-from pyproj import CRS, Transformer
 import googlemaps
+import logging
 
 from PIL import Image
 
@@ -132,32 +132,45 @@ def pixels_to_lat_lng(center: str, pixel: tuple) -> tuple:
     return pointLat, pointLng
 
 
-def lat_lng_to_amerfoort_rd(coords: tuple):
-    # The default coordinate reference system is Amersfoort / RD New + NAP height,
-    # EPSG:7415 (https://www.opengis.net/def/crs/EPSG/0/7415)
-    # bbox is a list of 4 coordinates (min x min y max x max y)
-    wgs84 = CRS("EPSG:4326")
-    rd_new = CRS("EPSG:7415")
+def fetch_roof_information(center: str) -> dict:
+    """Fetch the roof information from the building with the given center
+    from the google maps Solar API
 
-    # Create a transformer
-    transformer = Transformer.from_crs(wgs84, rd_new)
+    Args:
+        center (str): The center of the solar panel which belongs to the building
 
-    x, y = transformer.transform(coords[0], coords[1])
+    Returns:
+        dict: The roof slope and azimuth in a dictionary
+    """
 
-    return x, y
+    api_key = gmaps.key
+    url = "https://solar.googleapis.com/v1/buildingInsights:findClosest"
 
+    required_quality = "LOW"
+    lat, lng = map(float, center.split(","))
 
-def get_3dbag_information(bbox: list):
-    url = "https://api.3dbag.nl//collections/pand/items"
+    params = {
+        "location.latitude": lat,
+        "location.longitude": lng,
+        "requiredQuality": required_quality,
+        "key": api_key,
+    }
 
-    # Convert bbox into array of numbers and then add it into the url
-    bbox = ",".join(map(str, bbox))
-    url += f"?bbox={bbox}"
+    logging.info(f"Fetching roof information for {center}")
 
-    res = requests.get(url)
+    res = requests.get(url, params=params)
 
-    res.raise_for_status()
+    if res.status_code != 200:
+        logging.error(f"Error fetching roof information: {res.text}")
+        return None
 
     data = res.json()
 
-    return data["features"]
+    # roofSegmentStats is a list and we only want the first value
+    roofSegmentStats = data["solarPotential"]["roofSegmentStats"][0]
+
+    # From data we can extract the azimuth and the tilt of the roof
+    return {
+        "azimuth": roofSegmentStats["azimuthDegrees"],
+        "tilt": roofSegmentStats["pitchDegrees"],
+    }

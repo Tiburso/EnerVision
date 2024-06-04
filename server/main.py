@@ -3,14 +3,15 @@ from dotenv import load_dotenv
 import os
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.google_maps_to_3dbag import (
+from server.google_maps_api import (
     load_google_maps_api,
     unload_google_maps_api,
     fetch_google_maps_static_image,
     pixels_to_lat_lng,
+    fetch_roof_information,
 )
 
 from server.weather_data_api import get_predicted_data
@@ -72,9 +73,17 @@ async def predict_pv_energy(center: str, type: str):
     weather_data = get_predicted_data()
 
     # Get the azimuth and the tilt of the solar panels from the google api
+    roof_data = fetch_roof_information(center)
 
-    # Join all of them together and infer the energy production of the solar panels
-    # with the model
+    if roof_data is None:
+        raise HTTPException(status_code=404, detail="Roof data not found")
+
+    # Extend the weather data with the roof data
+    weather_data["azimuth"] = roof_data["azimuth"]
+    weather_data["tilt"] = roof_data["tilt"]
+    weather_data["module_type"] = type
+
+    # Run the inference model for the energy production
 
     # Return the normal parameters for the today and tomorrow
-    pass
+    return weather_data
