@@ -12,6 +12,9 @@ from server.google_maps_to_3dbag import (
     fetch_google_maps_static_image,
     pixels_to_lat_lng,
 )
+
+from server.weather_data_api import get_predicted_data
+
 from server.inference import segmentation_inference, load_models, clean_up_models
 
 
@@ -66,6 +69,7 @@ async def segment_solar_panel(center: str):
 @app.get("/predictions")
 async def predict_pv_energy(center: str, type: str):
     # Get the weather forecast for the next 2 days
+    weather_data = get_predicted_data()
 
     # Get the azimuth and the tilt of the solar panels from the google api
 

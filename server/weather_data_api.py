@@ -199,11 +199,14 @@ def read_grib_folder(grib_folder: str) -> pd.DataFrame:
     return df
 
 
-def group_by_data_and_cache(df: pd.DataFrame):
+def group_by_data_and_cache(df: pd.DataFrame) -> pd.DataFrame:
     """Group the weather data by day and cache it in a CSV file.
 
     Args:
         df (pd.DataFrame): The full dataframe containing the weather data for Eindhoven per hour
+
+    Returns:
+        pd.DataFrame: The weather data grouped by day
     """
 
     df["date"] = df["datetime"].dt.date
@@ -228,8 +231,16 @@ def group_by_data_and_cache(df: pd.DataFrame):
     # Save it in a way that can be cached
     daily_data.to_csv(f"energy_data/{date}.csv")
 
+    return daily_data
 
-def main():
+
+def fetch_data_from_api() -> pd.DataFrame:
+    """Fetch the latest weather data from the KNMI API and cache it.
+
+    Returns:
+        pd.DataFrame: The weather data for Eindhoven grouped by day
+    """
+
     global DATASET_NAME, DATASET_VERSION
 
     api_key = os.getenv("KNMI_API_KEY")
@@ -270,7 +281,52 @@ def main():
     )
 
     # Untar the file into a directory
+    grib_folder = unpack_tar_file(latest_file)
 
     # Read the grib files and extract the data
+    daily_data = read_grib_folder(grib_folder)
 
     # Group the data by date and cache it
+    daily_data = group_by_data_and_cache(daily_data)
+
+    return daily_data
+
+
+def get_cached_data(today: datetime) -> pd.DataFrame | None:
+    """Check if the data for today is cached and return it if it is.
+
+    Args:
+        today (datetime): The current date
+
+    Returns:
+        pd.DataFrame: The cached data if it exists, None otherwise
+    """
+
+    if not os.path.exists("energy_data"):
+        os.makedirs("energy_data")
+
+    # Get the date of the first file
+    date = today.date()
+
+    # Check if the file exists
+    if os.path.exists(f"energy_data/{date}.csv"):
+        return pd.read_csv(f"energy_data/{date}.csv", index_col="date")
+
+    # If the file does not exist, return None
+    return None
+
+
+def get_predicted_data() -> pd.DataFrame:
+    """Get the predicted data for today and tomorrow.
+
+    Returns:
+        pd.DataFrame: The predicted data for today and tomorrow
+    """
+
+    today = datetime.now()
+    cached_data = get_cached_data(today)
+
+    if cached_data is not None:
+        return cached_data
+
+    return fetch_data_from_api()
