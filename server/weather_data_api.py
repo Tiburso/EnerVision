@@ -2,6 +2,7 @@ import pygrib
 import pandas as pd
 import numpy as np
 import os
+import shutil
 import tarfile
 import logging
 import sys
@@ -194,7 +195,7 @@ def read_grib_folder(grib_folder: str) -> pd.DataFrame:
     df = df.fillna(0)
 
     # Remove the folder with the grib files
-    os.rmdir(grib_folder)
+    shutil.rmtree(grib_folder)
 
     return df
 
@@ -281,10 +282,16 @@ def fetch_data_from_api() -> pd.DataFrame:
     )
 
     # Untar the file into a directory
+    logger.info(f"Unpacking {latest_file}")
+
     grib_folder = unpack_tar_file(latest_file)
+
+    logger.info("Reading grib files and extracting data")
 
     # Read the grib files and extract the data
     daily_data = read_grib_folder(grib_folder)
+
+    logger.info("Grouping data by date and caching it")
 
     # Group the data by date and cache it
     daily_data = group_by_data_and_cache(daily_data)
@@ -309,8 +316,8 @@ def get_cached_data(today: datetime) -> pd.DataFrame | None:
     date = today.date()
 
     # Check if the file exists
-    if os.path.exists(f"energy_data/{date}.csv"):
-        return pd.read_csv(f"energy_data/{date}.csv", index_col="date")
+    if os.path.exists(f"weather_data/{date}.csv"):
+        return pd.read_csv(f"weather_data/{date}.csv", index_col="date")
 
     # If the file does not exist, return None
     return None
@@ -327,6 +334,9 @@ def get_predicted_data() -> pd.DataFrame:
     cached_data = get_cached_data(today)
 
     if cached_data is not None:
+        logger.info(f"Using cached data for {today.date()}")
         return cached_data
+
+    logger.info("Fetching data from the KNMI API")
 
     return fetch_data_from_api()
