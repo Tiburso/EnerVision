@@ -45,7 +45,8 @@ export async function getEnergyPrediction(lat: number, lng: number, type: string
     url.searchParams.append("type", type);
 
     try {
-        const response = await fetch(url.toString());
+        // cache this response for 24 hours
+        const response = await fetch(url.toString(), { cache: "no-store" });
 
         const data = await response.json();
 
