@@ -90,4 +90,8 @@ async def predict_pv_energy(center: str, type: str):
     predictions = energy_prediction(weather_data)
 
     # Return the normal parameters for the today and tomorrow
-    return predictions
+    return {
+        "predictions": [
+            {"mean": mean, "std": std, "amp": amp} for amp, mean, std in predictions
+        ]
+    }

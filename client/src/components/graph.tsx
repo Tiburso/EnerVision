@@ -1,18 +1,21 @@
+import { getEnergyPrediction } from '@/lib/requests';
 import React from 'react';
 
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 
+interface LineGraphProps {
+    lat: number
+    lng: number
+    type: string
+    area: number
+}
+
 /**
  * The LineGraph component is a functional component that renders a line graph of the energy production.
  */
-const LineGraph: React.FC = () => {
+const LineGraph: React.FC<LineGraphProps> = async ({lat, lng, type, area}) => {
     // data is a fetch from the backend
-    const data = [
-        {name: 'Page A', uv: 400},
-        {name: 'Page B', uv: 100},
-        {name: 'Page C', uv: 200},
-        {name: 'Page D', uv: 250}
-    ];
+    const data = await getEnergyPrediction(lat, lng, type, area);
 
     return (
         <div className='text-blue-800 border-2 border-gray-100 rounded'>

@@ -8,7 +8,7 @@ import React from 'react';
 import { useState } from 'react';
 
 import { LineGraph } from './graph';
-import { SolarPanel } from '@/lib/types';
+import { SolarPanel, LatLng } from '@/lib/types';
 
 interface SolarPanelProps {
     key: number
@@ -23,6 +23,22 @@ interface SolarPanelProps {
 */
 const SolarPanelF: React.FC<SolarPanelProps> = ({ key, solarPanel }) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    const calculateArea = (vertices: LatLng[]): number => {
+        // Helper function inside calculatePolygonArea to calculate the cross product of two LatLng coordinates
+        const crossProduct = (a: LatLng, b: LatLng): number => {
+            return a.lat * b.lng - a.lng * b.lat;
+        };
+
+        // Use reduce to sum the cross products between consecutive pairs of LatLng
+        const totalCrossProduct = vertices.reduce((sum, current, index, arr) => {
+            const nextIndex = (index + 1) % arr.length; // Wrap around to the first element after the last
+            return sum + crossProduct(current, arr[nextIndex]);
+        }, 0);
+
+        // Convert the total cross product to the area by dividing by 2 and taking the absolute value
+        return Math.abs(totalCrossProduct / 2);
+    }
     
     return (
         <>
@@ -39,7 +55,12 @@ const SolarPanelF: React.FC<SolarPanelProps> = ({ key, solarPanel }) => {
                 zIndex={1}
                 onCloseClick={() => setIsOpen(!isOpen)}
             >   
-                <LineGraph />
+                <LineGraph 
+                    lat={solarPanel.center.lat} 
+                    lng={solarPanel.center.lng}
+                    type={solarPanel.type}
+                    area={calculateArea(solarPanel.polygon)}
+                />
             </InfoWindowF>}
 
             <PolygonF
