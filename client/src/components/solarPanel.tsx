@@ -13,19 +13,26 @@ interface SolarPanelProps {
 }
 
 const calculateArea = (vertices: LatLng[]): number => {
-    // Helper function inside calculatePolygonArea to calculate the cross product of two LatLng coordinates
-    const crossProduct = (a: LatLng, b: LatLng): number => {
-        return a.lat * b.lng - a.lng * b.lat;
-    };
+    const earthRadiusSquared = 6371 * 6371;
 
-    // Use reduce to sum the cross products between consecutive pairs of LatLng
-    const totalCrossProduct = vertices.reduce((sum, current, index, arr) => {
-        const nextIndex = (index + 1) % arr.length; // Wrap around to the first element after the last
-        return sum + crossProduct(current, arr[nextIndex]);
-    }, 0);
+    const convertToRadians = (degrees: number): number => {
+        return degrees * Math.PI / 180;
+    }
+    
+    // Initialize the total cross product to 0
+    let area = 0;
+
+    for (let i = 0; i < vertices.length - 1; i++) {
+        const p1 = vertices[i];
+        const p2 = vertices[i + 1];
+
+        area += convertToRadians(p2.lng - p1.lng) * (2 + Math.sin(convertToRadians(p1.lat)) + Math.sin(convertToRadians(p2.lat)));
+    }
+
+    area = area * earthRadiusSquared / 2;
 
     // Convert the total cross product to the area by dividing by 2 and taking the absolute value
-    return Math.abs(totalCrossProduct / 2);
+    return Math.abs(area);   
 }
 
 /** 

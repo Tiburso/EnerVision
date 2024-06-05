@@ -16,7 +16,7 @@ export interface SolarPanel {
 export interface GaussianPrediction {
     mean: number
     std: number
-    amplitude: number
+    amp: number
 }
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
