@@ -93,7 +93,7 @@ def find_polygon_centers(polygons: list) -> list:
     return centers
 
 
-def infer_panel_types(image: Image, mask: torch.Tensor) -> list:
+def infer_panel_types(image: Image.Image, mask: torch.Tensor) -> list:
     """Infer the panel types based on the given image, mask and centers.
     Panel types can either be monocrytalline or polycrystalline.
 
@@ -104,40 +104,35 @@ def infer_panel_types(image: Image, mask: torch.Tensor) -> list:
     Returns:
         list: The inferred panel types.
     """
+    black_threshold = 30  # Lower value for black
+    blue_threshold = 200  # Higher saturation and value for blue
 
     # Find the contours of the mask
     mask = mask.cpu().numpy().astype("uint8")
 
+    # Convert the image to HSV color space
+    rgb_image = cv2.cvtColor(np.array(image), cv2.COLOR_GRAY2RGB)
+    hsv_image = cv2.cvtColor(np.array(rgb_image), cv2.COLOR_RGB2HSV)
+
+    # Find the countours
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Create a mask with the same size as the image
     panel_types = []
     for contour in contours:
-        mask = np.zeros(image.size[::-1], dtype=np.uint8)
-        cv2.drawContours(mask, [contour], -1, 255, -1)
-
-        # Crop the image based on the mask
+        # Calculate the bounding rectangle for the contour
         x, y, w, h = cv2.boundingRect(contour)
-        panel_image = image.crop((x, y, x + w, y + h))
 
-        # Convert the image to a numpy array
-        panel_image = np.array(panel_image)
+        # Extract the region of interest (ROI) from the HSV image
+        roi = hsv_image[y : y + h, x : x + w]
 
-        # Convert the image to grayscale
-        panel_image = cv2.cvtColor(panel_image, cv2.COLOR_RGB2GRAY)
+        # Calculate the average color of the ROI
+        avg_color = np.mean(roi, axis=(0, 1))
 
-        # Apply the threshold
-        _, panel_image = cv2.threshold(
-            panel_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-        )
-
-        # Find the contours of the panel image
-        panel_contours, _ = cv2.findContours(
-            panel_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-
-        # If the panel has more than 3 contours, then it is a polycrystalline panel
-        if len(panel_contours) > 3:
+        # Check if the average color is black
+        if avg_color[2] < black_threshold:
+            panel_types.append("monocrystalline")
+        elif avg_color[0] > blue_threshold and avg_color[1] > blue_threshold:
             panel_types.append("polycrystalline")
         else:
             panel_types.append("monocrystalline")
@@ -188,12 +183,17 @@ def energy_prediction(df: pd.DataFrame) -> List[Tuple[int, int, int]]:
         List[Tuple[int, int, int]]: The predicted energy output for each day (the gaussian parameters)
     """
 
-    df = normalize_features(df)
+    # df = normalize_features(df)
 
-    # Convert the dataframe to a tensor
-    x = torch.tensor(df.values).float()
+    # # Convert the dataframe to a tensor
+    # x = torch.tensor(df.values).float()
 
-    # Run the model
-    predictions = energy_prediction_model(x)
+    # # Run the model
+    # predictions = energy_prediction_model(x)
 
-    return predictions
+    # WIP
+    df = pd.read_csv("dataset_to_train_model.csv")
+
+    df = df["gaussian_params"].map(lambda x: ", ".join(x.split()))
+
+    return list(map(lambda x: eval(x), df.iloc[:2].values))
