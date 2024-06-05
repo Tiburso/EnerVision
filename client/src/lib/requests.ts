@@ -39,14 +39,14 @@ function gaussian(x: number, mean: number, std: number, amplitude: number): numb
 
 export async function getEnergyPrediction(lat: number, lng: number, type: string, area: number): Promise<number[]> {
     const center = `${lat},${lng}`;
-    const url = new URL(`${BACKEND_URL}/prediction`);
+    const url = new URL(`${BACKEND_URL}/predictions`);
 
     url.searchParams.append("center", center);
     url.searchParams.append("type", type);
 
     try {
         // cache this response for 24 hours
-        const response = await fetch(url.toString(), { cache: "no-store" });
+        const response = await fetch(url.toString(), { next: { revalidate: 3600 * 24 } });
 
         const data = await response.json();
 
@@ -57,6 +57,7 @@ export async function getEnergyPrediction(lat: number, lng: number, type: string
             const std = prediction.std;
             const amplitude = prediction.amplitude;
 
+            // Create a 24 element array with the energy prediction for each hour
             return Array.from({ length: 24 }, (_, i) => gaussian(i, mean, std, amplitude));
         });
 
