@@ -3,37 +3,37 @@ import torch.nn as nn
 from segmentation_models_pytorch.losses import (
     DiceLoss,
     JaccardLoss,
-    FocalLoss
+    FocalLoss,
+    SoftCrossEntropyLoss
 )
 
 
-class CombinedLoss(nn.Module):
+class LossCombined(nn.Module):
     def __init__(self):
         super().__init__()
-        self.dice_loss = LossCE()
         self.jaccard_loss = LossJaccard()
         self.ce_loss = LossCE()
 
     def forward(self, y_hat, y):
-        return (self.dice_loss + self.jaccard_loss + self.ce_loss) / 3.0
+        jaccard_loss = self.jaccard_loss(y_hat, y)
+        ce_loss = self.ce_loss(y_hat, y)
+        return (jaccard_loss + ce_loss) / 2.0
 
 
 class LossCE(nn.Module):
-    def __init__(self, weight=None):
+    def __init__(self):
         super().__init__()
-        if weight is not None:
-            weight = torch.tensor(weight, dtype=torch.float32)
-        self.loss = nn.CrossEntropyLoss(weight=weight)
+        self.loss = nn.BCEWithLogitsLoss()
 
     def forward(self, y_hat, y):
-        y = y.squeeze(1).long()
+        y = y.float()
         return self.loss(y_hat, y) 
 
 
 class LossDice(nn.Module):
     def __init__(self):
         super().__init__()
-        self.loss = DiceLoss(mode="multiclass", classes=2, from_logits=True)
+        self.loss = DiceLoss(mode="binary", from_logits=True)
 
     def forward(self, y_hat, y):
         y = y.long()
@@ -43,19 +43,27 @@ class LossDice(nn.Module):
 class LossJaccard(nn.Module):
     def __init__(self):
         super().__init__()
-        self.loss = JaccardLoss(mode="multiclass", classes=2, from_logits=True)
+        self.loss = JaccardLoss(mode="binary", from_logits=True)
 
     def forward(self, y_hat, y):
         y = y.long()
-        return self.loss(y_hat, y)
+
+        y_prob = torch.sigmoid(y_hat)
+        y_pred = (y_prob > 0.5).int()
+        y_ground = y.int()
+
+        if torch.all(y_pred == 0) and torch.all(y_ground == 0):
+            return torch.tensor(0.0)
+        else:
+            return self.loss(y_hat, y)
     
 
 class LossFocal(nn.Module):
     def __init__(self):
         super().__init__()
-        self.loss = FocalLoss(mode="multiclass", alpha=0.25)
+        self.loss = FocalLoss(mode="binary", alpha=0.25)
 
     def forward(self, y_hat, y):
-        y = y.squeeze(1).long()
+        y = y.long()
         return self.loss(y_hat, y)
     

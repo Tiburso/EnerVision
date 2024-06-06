@@ -10,7 +10,7 @@
 #SBATCH --partition=gpu_mig
 #SBATCH --error=slurm_results/slurm-%j.err
 #SBATCH --output=slurm_results/slurm-%j.out
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 
 # module load python3
 module load 2022
@@ -22,7 +22,7 @@ source .venv/bin/activate
 mkdir -p wandb/$SLURM_JOBID
 
 export PYTHONPATH="$pwd:$PYTHONPATH"
-export WANDB_API_KEY=22adbd27b1e6ca485d0e8ccae6d14b4fa95ac73c
+export WANDB_API_KEY=$WANDB_API_KEY
 export WANDB_DIR=wandb/$SLURM_JOBID
 export WANDB_CONFIG_DIR=wandb/$SLURM_JOBID
 export WANDB_CACHE_DIR=wandb/$SLURM_JOBID
@@ -31,4 +31,4 @@ wandb login
 
 # In the future create three consecutive train scripts for each dataset
 # python train_scripts/solar_dk_train.py --best_model 251115
-python train.py --data_path .
+python train_scripts/nl_dataset_train.py --best_model 123456

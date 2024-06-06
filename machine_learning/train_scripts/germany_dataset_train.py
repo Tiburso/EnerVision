@@ -2,21 +2,14 @@
 import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-
 from losses import CombinedLoss
 from train_scripts.solar_dk_train import LossJaccard
-
 import torchvision.transforms.v2 as transforms
-
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
 # Add EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
-
 from models.base import BaseModel
-
 from dataloaders.germany_dataset import GermanyDataset
-
 from sklearn.model_selection import train_test_split
 
 

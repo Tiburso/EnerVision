@@ -16,6 +16,6 @@ shapely
 rasterio
 transformers
 pycocotools
-unified-focal-loss-pytorch
+wandb
+# unified-focal-loss-pytorch
 git+https://github.com/qubvel/segmentation_models.pytorch
-pyproj
