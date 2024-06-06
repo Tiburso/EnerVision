@@ -20,13 +20,13 @@ import numpy as np
 
 def main(best_model="last"):
     wandb_logger = WandbLogger(
-        project = "Funetuning on SolarDK",
-        entity = "5ARIP",
+        project="Funetuning on SolarDK",
+        entity="5ARIP",
         config={
-        "learning_rate": 1e-5,
-        "architecture": "DeepLabV3+",
-        "dataset": "SolarDK",
-        }
+            "learning_rate": 1e-5,
+            "architecture": "DeepLabV3+",
+            "dataset": "SolarDK",
+        },
     )
 
     # SOLAR DK DATASET ---------------------
@@ -61,7 +61,7 @@ def main(best_model="last"):
         num_workers=4,
         persistent_workers=True,
     )
-    
+
     # Define path to checkpoint previous model
     checkpoint_path = f"Training on NL Dataset/caat99ql/checkpoints/25-0.83.ckpt"
 
@@ -70,10 +70,12 @@ def main(best_model="last"):
 
     # for param in base_model.model.model.encoder.parameters():
     #     param.requires_grad = False
-    
+
     # optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, base_model.model.parameters()), lr=1e-7)
     optimizer = torch.optim.AdamW(base_model.parameters(), lr=1e-8)
-    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=5, verbose=True)
+    scheduler = ReduceLROnPlateau(
+        optimizer, mode="max", factor=0.5, patience=5, verbose=True
+    )
     # scheduler = ExponentialLR(optimizer, gamma=0.95, verbose=True)
 
     base_model.optimizer = optimizer
@@ -89,13 +91,11 @@ def main(best_model="last"):
         every_n_epochs=1,
         filename="{epoch:02d}-{val_jaccard:.2f}",
         auto_insert_metric_name=False,
-        verbose=True
+        verbose=True,
     )
 
     early_stopping_callback = EarlyStopping(
-        monitor="val_jaccard",
-        patience=10,
-        mode="max"
+        monitor="val_jaccard", patience=10, mode="max"
     )
 
     solar_dk_trainer = pl.Trainer(

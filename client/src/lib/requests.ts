@@ -1,6 +1,6 @@
 "use server";
 
-import { SolarPanel, BACKEND_URL } from "@/lib/types";
+import { SolarPanel, GaussianPrediction, BACKEND_URL } from "@/lib/types";
 
 /**
  * Function sends a request to the backend service to get a segmentation analysis of the 
@@ -10,11 +10,14 @@ import { SolarPanel, BACKEND_URL } from "@/lib/types";
  * @param lng - The longitude of the center of the google maps static image.
  * @returns - A promise of the solar panel segmentation analysis.
  */
-export async function getSolarPanel(lat: number, lng: number): Promise<Partial<SolarPanel[]>> {
+export async function getSolarPanel(lat: number, lng: number): Promise<SolarPanel[]> {
     const center = `${lat},${lng}`;
+    const url = new URL(`${BACKEND_URL}/segmentation`);
+
+    url.searchParams.append("center", center);
 
     try {
-        const response = await fetch(`${BACKEND_URL}/segmentation?center=${center}`);
+        const response = await fetch(url.toString());
 
         const data = await response.json();
 
@@ -28,4 +31,41 @@ export async function getSolarPanel(lat: number, lng: number): Promise<Partial<S
 
         return [];
     }
-} 
+}
+
+function gaussian(x: number, mean: number, std: number, amplitude: number): number {
+    return amplitude * Math.exp(-((x - mean) ** 2) / (2 * std ** 2));
+}
+
+export async function getEnergyPrediction(lat: number, lng: number, type: string, area: number): Promise<number[]> {
+    const center = `${lat},${lng}`;
+    const url = new URL(`${BACKEND_URL}/predictions`);
+
+    url.searchParams.append("center", center);
+    url.searchParams.append("type", type);
+
+    try {
+        // cache this response for 24 hours
+        const response = await fetch(url.toString(), { next: { revalidate: 3600 * 24 } });
+
+        const data = await response.json();
+
+        // Predictions is gonna be an array with 2 elements -> [mean, std, amplitude]
+        // Each element corresponds to a day, (0) -> today, (1) -> tomorrow
+        const predictions: number[] = data["predictions"].map((prediction: GaussianPrediction) => {
+            const mean = prediction.mean;
+            const std = prediction.std;
+            const amp = prediction.amp;
+
+            // Create a 24 element array with the energy prediction for each hour
+            return Array.from({ length: 24 }, (_, i) => gaussian(i, mean, std, amp))
+        });
+
+        // predictions scale linearly with the area of the solar panel
+        return predictions.flat().map((value) => value * area);
+    } catch (error) {
+        console.error(error);
+
+        return [];
+    }
+}
