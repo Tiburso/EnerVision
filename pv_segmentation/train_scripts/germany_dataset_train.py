@@ -1,40 +1,21 @@
 # From the dataset, create a train and test set
 import torch
-from torch import nn
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-
-from segmentation_models_pytorch.losses import (
-    JaccardLoss,
-)
-
+from losses import CombinedLoss
+from train_scripts.solar_dk_train import LossJaccard
 import torchvision.transforms.v2 as transforms
-
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
 # Add EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
-
 from models.base import BaseModel
-
-from dataloaders.solar_dk_dataset import SolarDKDataset
-
-
-class LossJaccard(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.loss = JaccardLoss(mode="multiclass")
-
-    def forward(self, y_hat, y):
-        y = y.argmax(dim=1)
-        return self.loss(y_hat, y)
+from dataloaders.germany_dataset import GermanyDataset
+from sklearn.model_selection import train_test_split
 
 
-def main(best_model="last"):
-    # SOLAR DK DATASET ---------------------
-    solar_dk_train_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/train"
-    solar_dk_validation_folder = "data/solardk_dataset_neurips_v2/gentofte_trainval/val"
-    solar_dk_test_folder = "data/solardk_dataset_neurips_v2/herlev_test/test"
+def main(best_model: str = "last"):
+    # GERMANY DATASET ---------------------
+    germany_folder = "data/germany_dataset"
 
     ## LOAD THE DATASET
     # Define the transforms
@@ -44,33 +25,43 @@ def main(best_model="last"):
             transforms.RandomVerticalFlip(p=0.5),
             transforms.RandomRotation(degrees=90),
             transforms.RandomAdjustSharpness(sharpness_factor=2),
+            transforms.RandomResizedCrop(size=(640, 640), scale=(0.8, 1.0)),
         ]
     )
 
-    train_dataset = SolarDKDataset(
-        solar_dk_train_folder, total_samples=1000, transform=transform
+    dataset = GermanyDataset(germany_folder, transform=transform)
+
+    # Create a train, validation and test set
+    train_indices, test_indices = train_test_split(
+        range(len(dataset)), test_size=0.2, random_state=0
     )
 
-    validation_dataset = SolarDKDataset(solar_dk_validation_folder)
+    train_indices, validation_indices = train_test_split(
+        train_indices, test_size=0.2, random_state=0
+    )
 
-    test_dataset = SolarDKDataset(solar_dk_test_folder)
+    train_dataset = torch.utils.data.Subset(dataset, train_indices)
+    validation_dataset = torch.utils.data.Subset(dataset, validation_indices)
+    test_dataset = torch.utils.data.Subset(dataset, test_indices)
 
     ## CREATE THE DATALOADERS
-    solar_dk_train_loader = DataLoader(
+    train_loader = DataLoader(
         train_dataset,
         batch_size=4,
         shuffle=True,
         num_workers=4,
         persistent_workers=True,
     )
-    solar_dk_validation_loader = DataLoader(
+
+    validation_loader = DataLoader(
         validation_dataset,
         batch_size=4,
         shuffle=False,
         num_workers=4,
         persistent_workers=True,
     )
-    solar_dk_test_loader = DataLoader(
+
+    test_loader = DataLoader(
         test_dataset,
         batch_size=4,
         shuffle=False,
@@ -80,14 +71,14 @@ def main(best_model="last"):
 
     # DEFINE THE MODEL
     base_model = BaseModel.load_from_checkpoint(
-        f"lightning_logs/version_{best_model}/checkpoints/last.ckpt",
+        "lightning_logs/version_240425/checkpoints/last.ckpt",
     )
 
     model = base_model.model
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=5)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-6)
+    scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=0.1, patience=5)
+    loss_fn = CombinedLoss()
 
-    loss_fn = LossJaccard()
     base_model = BaseModel(model, loss_fn, optimizer, scheduler=scheduler)
 
     solar_dk_trainer = pl.Trainer(
@@ -95,7 +86,7 @@ def main(best_model="last"):
         strategy="auto",
         accelerator="gpu",
         devices=1,
-        max_epochs=100,
+        max_epochs=150,
         min_epochs=30,
         enable_checkpointing=True,
         callbacks=[
@@ -112,12 +103,11 @@ def main(best_model="last"):
 
     solar_dk_trainer.fit(
         base_model,
-        solar_dk_train_loader,
-        solar_dk_validation_loader,
-        ckpt_path=f"lightning_logs/version_{best_model}/checkpoints/last.ckpt",
+        train_loader,
+        validation_loader,
     )
 
-    solar_dk_trainer.test(base_model, solar_dk_test_loader, ckpt_path="best")
+    solar_dk_trainer.test(base_model, test_loader)
 
 
 if __name__ == "__main__":
@@ -125,7 +115,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    # Add best model number
     parser.add_argument("--best_model", type=str, default="last")
+
+    torch.manual_seed(0)
+    torch.set_num_threads(4)
 
     main(parser.parse_args().best_model)

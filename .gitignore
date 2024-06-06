@@ -186,3 +186,5 @@ measurement.csv
 fitted_gaussian_results.csv
 energy_measurement_data.csv
 solarpanels.xlsx
+
+wandb
