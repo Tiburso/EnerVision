@@ -45,6 +45,8 @@ function SolarPanelF({ key, solarPanel } : SolarPanelProps) {
     const [energyPrediction, setEnergyPrediction] = useState<number[]>([]);
     const area = calculateArea(solarPanel.polygon);
 
+    console.log(area);
+
     useEffect(() => {
         getEnergyPrediction(solarPanel.center.lat, solarPanel.center.lng, solarPanel.type, area)
             .then(setEnergyPrediction)

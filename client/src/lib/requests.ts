@@ -57,8 +57,6 @@ export async function getEnergyPrediction(lat: number, lng: number, type: string
             const std = prediction.std;
             const amp = prediction.amp;
 
-            console.log(mean, std, amp);
-
             // Create a 24 element array with the energy prediction for each hour
             return Array.from({ length: 24 }, (_, i) => gaussian(i, mean, std, amp))
         });
