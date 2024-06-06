@@ -9,9 +9,10 @@ import cv2
 from PIL import Image
 
 import torch
-from losses import LossJaccard
 
-from models.architectures import DeepLabModel
+# from losses import LossJaccard
+
+# from models.architectures import DeepLabModel
 from models.base import BaseModel
 
 from energy_prediction import EnergyPredictionPL, normalize_features
@@ -23,15 +24,17 @@ energy_prediction_model = None
 def load_models():
     global segmentation_model, energy_prediction_model
 
-    model = DeepLabModel(2, backbone="resnet152")
-    model.load_state_dict(torch.load("segmentation_model.pth"))
-    segmentation_model = BaseModel(model, LossJaccard(), None)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    segmentation_model = BaseModel.load_from_checkpoint("segmentation_model.ckpt")
     segmentation_model.eval()
+    segmentation_model.to(device)
 
     energy_prediction_model = EnergyPredictionPL.load_from_checkpoint(
         "energy_prediction_model.ckpt"
     )
     energy_prediction_model.eval()
+    energy_prediction_model.to(device)
 
 
 def clean_up_models():
@@ -51,8 +54,9 @@ def masks_to_polygons(mask: torch.Tensor) -> list:
         list: A list of polygons.
     """
 
-    mask = mask.cpu().numpy().astype("uint8")
+    mask = mask.cpu().numpy().astype(np.uint8)
 
+    # Put the mask in grey scale
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     polygons = []
@@ -108,7 +112,7 @@ def infer_panel_types(image: Image.Image, mask: torch.Tensor) -> list:
     blue_threshold = 200  # Higher saturation and value for blue
 
     # Find the contours of the mask
-    mask = mask.cpu().numpy().astype("uint8")
+    mask = mask.cpu().numpy().astype(np.uint8)
 
     # Convert the image to HSV color space
     rgb_image = cv2.cvtColor(np.array(image), cv2.COLOR_GRAY2RGB)
@@ -164,10 +168,17 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list, list]:
 
     image = transform(image).unsqueeze(0)
 
-    mask = segmentation_model(image).argmax(1)
+    probs = torch.sigmoid(segmentation_model(image))
+    mask = (probs > 0.5).int()
 
-    pvtypes = infer_panel_types(image, mask.squeeze(0))
-    polygons = masks_to_polygons(mask.squeeze(0))
+    # Shape is (1, 1, 640, 640)
+    # Convert it to (640, 640)
+    mask = mask.squeeze(0).squeeze(0)
+
+    print(mask.shape)
+
+    pvtypes = infer_panel_types(image, mask)
+    polygons = masks_to_polygons(mask)
     centers = find_polygon_centers(polygons)
 
     return polygons, centers, pvtypes
