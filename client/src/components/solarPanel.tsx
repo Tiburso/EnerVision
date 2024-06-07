@@ -13,26 +13,37 @@ interface SolarPanelProps {
 }
 
 const calculateArea = (vertices: LatLng[]): number => {
-    const earthRadiusSquared = 6371 * 6371;
+    const earthRadiusSquared = 6371009 // Earth's radius in meters
 
-    const convertToRadians = (degrees: number): number => {
+    const deg2rad = (degrees: number): number => {
         return degrees * Math.PI / 180;
     }
+
+    const latLngToCartesian = (lat: number, lng: number, latDist: number): { x: number; y: number } => {
+        const phi = deg2rad(lat);
+        const lambda = deg2rad(lng);
+        const x = lambda * latDist * Math.cos(phi);
+        const y = phi * latDist;
+        return { x, y };
+    };
     
     // Initialize the total cross product to 0
     let area = 0;
 
-    for (let i = 0; i < vertices.length - 1; i++) {
+    // Iterate over the vertices of the polygon
+    for (let i = 0; i < vertices.length; i++) {
         const p1 = vertices[i];
-        const p2 = vertices[i + 1];
+        const p2 = vertices[(i + 1) % vertices.length];
 
-        area += convertToRadians(p2.lng - p1.lng) * (2 + Math.sin(convertToRadians(p1.lat)) + Math.sin(convertToRadians(p2.lat)));
+        // Convert the latitude and longitude to cartesian coordinates
+        const p1Cartesian = latLngToCartesian(p1.lat, p1.lng, earthRadiusSquared);
+        const p2Cartesian = latLngToCartesian(p2.lat, p2.lng, earthRadiusSquared);
+
+        // Calculate the cross product of the two points
+        area += p1Cartesian.x * p2Cartesian.y - p1Cartesian.y * p2Cartesian.x;
     }
-
-    area = area * earthRadiusSquared / 2;
-
-    // Convert the total cross product to the area by dividing by 2 and taking the absolute value
-    return Math.abs(area);   
+    
+    return Math.abs(area / 2);
 }
 
 /** 
