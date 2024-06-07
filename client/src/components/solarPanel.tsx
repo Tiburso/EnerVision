@@ -42,7 +42,7 @@ const calculateArea = (vertices: LatLng[]): number => {
         // Calculate the cross product of the two points
         area += p1Cartesian.x * p2Cartesian.y - p1Cartesian.y * p2Cartesian.x;
     }
-    
+
     return Math.abs(area / 2);
 }
 
@@ -55,8 +55,6 @@ const calculateArea = (vertices: LatLng[]): number => {
 function SolarPanelF({ key, solarPanel } : SolarPanelProps) {
     const [energyPrediction, setEnergyPrediction] = useState<number[]>([]);
     const area = calculateArea(solarPanel.polygon);
-
-    console.log(area);
 
     useEffect(() => {
         getEnergyPrediction(solarPanel.center.lat, solarPanel.center.lng, solarPanel.type, area)
