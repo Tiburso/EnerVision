@@ -186,3 +186,8 @@ measurement.csv
 fitted_gaussian_results.csv
 energy_measurement_data.csv
 solarpanels.xlsx
+energy_prediction/optuna_logs/
+energy_prediction/models/
+energy_prediction/runs/
+energy_prediction/models2/
+energy_prediction/energy_data/
