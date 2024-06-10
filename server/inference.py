@@ -37,7 +37,14 @@ def load_models():
         dataset_values = pickle.load(f)
 
     # Load the energy prediction model
-    energy_prediction_model = EnergyPredictionModel(dataset_values=dataset_values)
+    # dynamic feature size =5, static feature_size =3. Hidden /fc_size is 8/128 
+    energy_prediction_model = EnergyPredictionModel(
+        5,
+        3,
+        8,
+        128,
+        dataset_values=dataset_values
+    )
     energy_prediction_model.load_state_dict(torch.load("energy_prediction_model.pth"))
     energy_prediction_model.eval()
     energy_prediction_model.to(device)
