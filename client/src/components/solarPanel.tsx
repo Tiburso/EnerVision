@@ -14,19 +14,19 @@ interface SolarPanelProps {
 
 const calculateArea = (vertices: LatLng[]): number => {
     const earthRadiusSquared = 6371009 // Earth's radius in meters
-
-    const deg2rad = (degrees: number): number => {
-        return degrees * Math.PI / 180;
-    }
-
-    const latLngToCartesian = (lat: number, lng: number, latDist: number): { x: number; y: number } => {
-        const phi = deg2rad(lat);
-        const lambda = deg2rad(lng);
-        const x = lambda * latDist * Math.cos(phi);
-        const y = phi * latDist;
-        return { x, y };
-    };
     
+    const latLngToCartesian = (lat: number, lng: number, radiusSquared: number) => {
+        // Convert the latitude and longitude to radians
+        const latRadians = lat * Math.PI / 180;
+        const lngRadians = lng * Math.PI / 180;
+
+        // Calculate the x and y coordinates of the point on the sphere
+        return {
+            x: radiusSquared * Math.cos(latRadians) * Math.cos(lngRadians),
+            y: radiusSquared * Math.cos(latRadians) * Math.sin(lngRadians),
+        };
+    } 
+
     // Initialize the total cross product to 0
     let area = 0;
 
