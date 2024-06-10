@@ -9,13 +9,14 @@ import cv2
 from PIL import Image
 
 import torch
+import pickle
 
 # from losses import LossJaccard
 
 # from models.architectures import DeepLabModel
 from models.base import BaseModel
 
-from energy_prediction import EnergyPredictionPL, normalize_features
+from energy_prediction_model import EnergyPredictionModel
 
 segmentation_model = None
 energy_prediction_model = None
@@ -26,13 +27,18 @@ def load_models():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Load the segmentation model
     segmentation_model = BaseModel.load_from_checkpoint("segmentation_model.ckpt")
     segmentation_model.eval()
     segmentation_model.to(device)
 
-    energy_prediction_model = EnergyPredictionPL.load_from_checkpoint(
-        "energy_prediction_model.ckpt"
-    )
+    # Load the dataset values
+    with open("dataset_values.pkl", "rb") as f:
+        dataset_values = pickle.load(f)
+
+    # Load the energy prediction model
+    energy_prediction_model = EnergyPredictionModel(dataset_values=dataset_values)
+    energy_prediction_model.load_state_dict(torch.load("energy_prediction_model.pth"))
     energy_prediction_model.eval()
     energy_prediction_model.to(device)
 
@@ -194,13 +200,18 @@ def energy_prediction(df: pd.DataFrame) -> List[Tuple[int, int, int]]:
         List[Tuple[int, int, int]]: The predicted energy output for each day (the gaussian parameters)
     """
 
+    # Column order
+    # sample dynamics = Bx24x5 and sample static is Bx3
+    # dynamic_cols = ['temperature_sequence', 'wind_speed_sequence', 'dni_sequence', 'dhi_sequence', 'global_irradiance_sequence']
+    # static_cols = ['tilt', 'azimuth','module_type']
+
     # df = normalize_features(df)
 
     # # Convert the dataframe to a tensor
     # x = torch.tensor(df.values).float()
 
     # # Run the model
-    # predictions = energy_prediction_model(x)
+    # predictions = energy_prediction_model.predict(sample_dynamic, sample_static)
 
     # WIP
     df = pd.read_csv("dataset_to_train_model.csv")
