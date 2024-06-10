@@ -192,3 +192,5 @@ energy_prediction/models/
 energy_prediction/runs/
 energy_prediction/models2/
 energy_prediction/energy_data/
+*.png
+*.pkl
