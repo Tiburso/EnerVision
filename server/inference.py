@@ -221,12 +221,17 @@ def energy_prediction(df: pd.DataFrame) -> List[List[int]]:
 
     # Put the dynamic columns in a tensor
     sample_dynamic = torch.tensor(df[dynamic_cols].values, dtype=torch.float32)
+    # size 2x24x5
     sample_dynamic = sample_dynamic.view(-1, 24, 5)
 
     # Put the static columns in a tensor
     df["module_type"] = df["module_type"].map(module_type_map)
     sample_static = torch.tensor(df[static_cols].values, dtype=torch.float32)
+    # size 2x3
     sample_static = sample_static.view(-1, 3)[:2]
+
+    print(sample_dynamic.shape)
+    print(sample_static.shape)
 
     predictions: torch.Tensor = energy_prediction_model.predict(
         sample_dynamic, sample_static

@@ -95,8 +95,8 @@ class EnergyPredictionModel(nn.Module):
             normalized_output = self.forward(x_dynamic_norm, x_static_norm)
 
         # Denormalize the output if needed
-        denormalized_output = normalized_output * (self.max - self.min) + self.min
-        return denormalized_output
+        # denormalized_output = normalized_output * (self.max - self.min) + self.min
+        return normalized_output * (self.max - self.min) + self.min
 
     def set_dataset_values(self, dataset_values):
         self.mean = dataset_values["mean"]

@@ -5,7 +5,7 @@ import {
     MarkerF,
 } from '@react-google-maps/api';
 
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 
 import { 
     LineChart, 
@@ -31,49 +31,47 @@ interface ChartData {
  * The LineGraph component is a functional component that renders a line graph of the energy production.
  */
 const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
-    const [energyPrediction, setEnergyPrediction] = useState<number[]>([]);
+    const [chartData, setChartData] = useState<ChartData[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     
-    const now = useMemo(() => new Date(), []);
 
-    useEffect(() => {
-        getEnergyPrediction(center.lat, center.lng, type, area)
-            .then(setEnergyPrediction)
-            .catch(console.error);
-    }, [center, type, area]);
+    const fetchEnergyPrediction = useCallback(async () => {
+        const now = new Date()
 
-    // Have to be in the same format as the data
-    const currentHour = useMemo(() => {
         const hour = now.getHours();
         const date = now.toISOString().split('T')[0];
-        return `${date} ${hour + 1}:00`;
-    }
-    , [now]);
+        // const formatedHour = `${date} ${hour + 1}:00`;
 
-    // data must be in the format of [{name: day + hour, energy: energy}]
-    const data: ChartData[] = energyPrediction.map((energy, index) => {
-        // If the index is less than 24, then it is today
-        if (index < 24) {
-            // Now get just the date without the time
-            const date = now.toISOString().split('T')[0];
+        const prediction = await getEnergyPrediction(center.lat, center.lng, type, area);
+        
+        const data = prediction.map((energy, index) => {
+            // If the index is less than 24, then it is today
+            if (index < 24) {
+                // Now get just the date without the time
+                const date = now.toISOString().split('T')[0];
+    
+                return { name: `${date} ${index + 1}:00`, energy };
+            }
+    
+            // Get tomorrows date
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
+            const date = tomorrow.toISOString().split('T')[0];
+    
+            // data must be in the format of [{name: day + hour, energy: energy}]
+            return { name: `${date} ${index - 24 + 1}:00`, energy };
+        });
 
-            return { name: `${date} ${index + 1}:00`, energy };
-        }
-
-        // Get tomorrows date
-        const tomorrow = new Date(now);
-        tomorrow.setDate(now.getDate() + 1);
-        const date = tomorrow.toISOString().split('T')[0];
-
-        return { name: `${date} ${index - 24 + 1}:00`, energy };
-    });
+        setChartData(data);
+        setIsOpen(!isOpen);
+    }, [center, type, area, isOpen]);
 
     return (
         <>
             <MarkerF
                 key={key}
                 position={center}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={fetchEnergyPrediction}
             />
             
             {isOpen && 
@@ -87,7 +85,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
                 <p className='text-center font-bold'>Energy Production</p>
                     <LineChart
                         title='Energy Production' 
-                        data={data} 
+                        data={chartData} 
                         className='pr-7'
                         width={300} height={200}
                     >
@@ -98,7 +96,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
                         />
                         {/* Reference Line with the current hour make it a very light red dashd */}
                         <ReferenceLine 
-                            x={currentHour} 
+                            // x={currentHour} 
                             stroke='red' 
                             opacity={80} 
                             strokeDasharray="1 1"
