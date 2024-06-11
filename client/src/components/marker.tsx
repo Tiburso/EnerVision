@@ -5,7 +5,7 @@ import {
     MarkerF,
 } from '@react-google-maps/api';
 
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 
 import { 
     LineChart, 
