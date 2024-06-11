@@ -171,6 +171,7 @@ slurm-*
 
 # Ignore all model checkpoints
 **/*.ckpt
+**/*.pkl
 
 cache/*
 energy_prediction/result.csv

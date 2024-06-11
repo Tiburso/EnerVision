@@ -10,7 +10,6 @@ import requests
 from datetime import datetime, timedelta
 
 from pvlib import irradiance
-from pvlib.solarposition import get_solarposition
 from pvlib import irradiance, solarposition
 
 logging.basicConfig()
@@ -200,7 +199,7 @@ def read_grib_folder(grib_folder: str) -> pd.DataFrame:
     return df
 
 
-def group_by_data_and_cache(df: pd.DataFrame) -> pd.DataFrame:
+def rename_columns_and_cache(df: pd.DataFrame) -> pd.DataFrame:
     """Group the weather data by day and cache it in a CSV file.
 
     Args:
@@ -210,12 +209,11 @@ def group_by_data_and_cache(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The weather data grouped by day
     """
 
-    df["date"] = df["datetime"].dt.date
-    df = df.drop(["file_name", "datetime"], axis=1)
-    grouped = df.groupby("date")
+    df = df.sort_values("datetime")
+    date = df["datetime"].iloc[0].date()
+    df = df.drop(["file_name"], axis=1)
 
     # Aggregate hourly values into lists per day
-    daily_data = grouped.agg(list)
     keeps = {
         "temperature": "temperature_sequence",
         "windSpeed": "wind_speed_sequence",
@@ -223,19 +221,13 @@ def group_by_data_and_cache(df: pd.DataFrame) -> pd.DataFrame:
         "dhi": "dhi_sequence",
         "globalRadiation": "global_irradiance_sequence",
     }
-    daily_data = daily_data[keeps.keys()].rename(keeps, axis=1)
-    daily_data.index.name = "date"
-
-    # Remove the last row (its the day 3)
-    daily_data = daily_data[:-1]
-
-    # Get the index of the first date
-    date = daily_data.index[0]
+    df = df.rename(keeps, axis=1)
+    df = df.set_index("datetime")
 
     # Save it in a way that can be cached
-    daily_data.to_csv(f"weather_data/{date}.csv")
+    df.to_csv(f"weather_data/{date}.csv")
 
-    return daily_data
+    return df
 
 
 def fetch_data_from_api() -> pd.DataFrame:
@@ -294,10 +286,10 @@ def fetch_data_from_api() -> pd.DataFrame:
     # Read the grib files and extract the data
     daily_data = read_grib_folder(grib_folder)
 
-    logger.info("Grouping data by date and caching it")
+    logger.info("Renaming the columns and caching it")
 
     # Group the data by date and cache it
-    daily_data = group_by_data_and_cache(daily_data)
+    daily_data = rename_columns_and_cache(daily_data)
 
     return daily_data
 
@@ -312,15 +304,15 @@ def get_cached_data(today: datetime) -> pd.DataFrame | None:
         pd.DataFrame: The cached data if it exists, None otherwise
     """
 
-    if not os.path.exists("energy_data"):
-        os.makedirs("energy_data")
+    if not os.path.exists("weather_data"):
+        os.makedirs("weather_data")
 
     # Get the date of the first file
     date = today.date()
 
     # Check if the file exists
     if os.path.exists(f"weather_data/{date}.csv"):
-        return pd.read_csv(f"weather_data/{date}.csv", index_col="date")
+        return pd.read_csv(f"weather_data/{date}.csv", index_col="datetime")
 
     # If the file does not exist, return None
     return None

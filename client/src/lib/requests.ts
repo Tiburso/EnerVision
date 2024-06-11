@@ -1,6 +1,6 @@
 "use server";
 
-import { SolarPanel, GaussianPrediction, BACKEND_URL } from "@/lib/types";
+import { SolarPanel, BACKEND_URL } from "@/lib/types";
 
 /**
  * Function sends a request to the backend service to get a segmentation analysis of the 
@@ -24,6 +24,7 @@ export async function getSolarPanel(lat: number, lng: number): Promise<SolarPane
         return data["panels"].map((panel: any) => ({
             center: { lat: panel.center[0], lng: panel.center[1] },
             polygon: panel.polygon.map((point: number[]) => ({ lat: point[0], lng: point[1] })),
+            type: panel.type
         }));
 
     } catch (error) {
@@ -31,10 +32,6 @@ export async function getSolarPanel(lat: number, lng: number): Promise<SolarPane
 
         return [];
     }
-}
-
-function gaussian(x: number, mean: number, std: number, amplitude: number): number {
-    return amplitude * Math.exp(-((x - mean) ** 2) / (2 * std ** 2));
 }
 
 export async function getEnergyPrediction(lat: number, lng: number, type: string, area: number): Promise<number[]> {
@@ -50,19 +47,14 @@ export async function getEnergyPrediction(lat: number, lng: number, type: string
 
         const data = await response.json();
 
-        // Predictions is gonna be an array with 2 elements -> [mean, std, amplitude]
-        // Each element corresponds to a day, (0) -> today, (1) -> tomorrow
-        const predictions: number[] = data["predictions"].map((prediction: GaussianPrediction) => {
-            const mean = prediction.mean;
-            const std = prediction.std;
-            const amp = prediction.amp;
-
-            // Create a 24 element array with the energy prediction for each hour
-            return Array.from({ length: 24 }, (_, i) => gaussian(i, mean, std, amp))
-        });
+        // Append the key "today" and "tomorrow" into a single array
+        const predictions = [...data["today"], ...data["tomorrow"]];
 
         // predictions scale linearly with the area of the solar panel
-        return predictions.flat().map((value) => value * area);
+        return predictions
+            .map((value) => Math.max(0, value))
+            .map((value) => value * area);
+
     } catch (error) {
         console.error(error);
 

@@ -5,7 +5,7 @@ import {
     MarkerF,
 } from '@react-google-maps/api';
 
-import React, {useState, useMemo} from 'react';
+import React, {useState, useCallback} from 'react';
 
 import { 
     LineChart, 
@@ -13,10 +13,13 @@ import {
  } from 'recharts';
 import { LatLng } from '@/lib/types';
 
+import { getEnergyPrediction } from '@/lib/requests';
+
 interface MarkerProps {
     key: number
     center: LatLng
-    energyPrediction: number[]
+    type: string
+    area: number
 }
 
 interface ChartData {
@@ -27,44 +30,50 @@ interface ChartData {
 /**
  * The LineGraph component is a functional component that renders a line graph of the energy production.
  */
-const Marker: React.FC<MarkerProps> = ({key, center, energyPrediction}) => {
-    // data is a fetch from the backend
+const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
+    const [chartData, setChartData] = useState<ChartData[]>([]);
+    const [formattedHour, setFormattedHour] = useState<string>('');
     const [isOpen, setIsOpen] = useState(false);
     
-    const now = useMemo(() => new Date(), []);
 
-    // Have to be in the same format as the data
-    const currentHour = useMemo(() => {
+    const fetchEnergyPrediction = useCallback(async () => {
+        const now = new Date()
+
         const hour = now.getHours();
         const date = now.toISOString().split('T')[0];
-        return `${date} ${hour + 1}:00`;
-    }
-    , [now]);
+        const formatedHour = `${date} ${hour + 1}:00`;
 
-    // data must be in the format of [{name: day + hour, energy: energy}]
-    const data: ChartData[] = energyPrediction.map((energy, index) => {
-        // If the index is less than 24, then it is today
-        if (index < 24) {
-            // Now get just the date without the time
-            const date = now.toISOString().split('T')[0];
+        const prediction = await getEnergyPrediction(center.lat, center.lng, type, area);
+        
+        const data = prediction.map((energy, index) => {
+            // If the index is less than 24, then it is today
+            if (index < 24) {
+                // Now get just the date without the time
+                const date = now.toISOString().split('T')[0];
+    
+                return { name: `${date} ${index + 1}:00`, energy };
+            }
+    
+            // Get tomorrows date
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
+            const date = tomorrow.toISOString().split('T')[0];
+    
+            // data must be in the format of [{name: day + hour, energy: energy}]
+            return { name: `${date} ${index - 24 + 1}:00`, energy };
+        });
 
-            return { name: `${date} ${index + 1}:00`, energy };
-        }
-
-        // Get tomorrows date
-        const tomorrow = new Date(now);
-        tomorrow.setDate(now.getDate() + 1);
-        const date = tomorrow.toISOString().split('T')[0];
-
-        return { name: `${date} ${index - 24 + 1}:00`, energy };
-    });
+        setFormattedHour(formatedHour);
+        setChartData(data);
+        setIsOpen(!isOpen);
+    }, [center, type, area, isOpen]);
 
     return (
         <>
             <MarkerF
                 key={key}
                 position={center}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={fetchEnergyPrediction}
             />
             
             {isOpen && 
@@ -78,7 +87,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, energyPrediction}) => {
                 <p className='text-center font-bold'>Energy Production</p>
                     <LineChart
                         title='Energy Production' 
-                        data={data} 
+                        data={chartData} 
                         className='pr-7'
                         width={300} height={200}
                     >
@@ -89,7 +98,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, energyPrediction}) => {
                         />
                         {/* Reference Line with the current hour make it a very light red dashd */}
                         <ReferenceLine 
-                            x={currentHour} 
+                            x={formattedHour} 
                             stroke='red' 
                             opacity={80} 
                             strokeDasharray="1 1"

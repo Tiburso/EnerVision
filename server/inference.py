@@ -9,13 +9,14 @@ import cv2
 from PIL import Image
 
 import torch
+import pickle
 
 # from losses import LossJaccard
 
 # from models.architectures import DeepLabModel
 from models.base import BaseModel
 
-from energy_prediction import EnergyPredictionPL, normalize_features
+from server.energy_prediction_model import EnergyPredictionModel
 
 segmentation_model = None
 energy_prediction_model = None
@@ -26,13 +27,25 @@ def load_models():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Load the segmentation model
     segmentation_model = BaseModel.load_from_checkpoint("segmentation_model.ckpt")
     segmentation_model.eval()
     segmentation_model.to(device)
 
-    energy_prediction_model = EnergyPredictionPL.load_from_checkpoint(
-        "energy_prediction_model.ckpt"
+    # Load the dataset values
+    with open("dataset_values.pkl", "rb") as f:
+        dataset_values = pickle.load(f)
+
+    # Load the energy prediction model
+    # dynamic feature size =5, static feature_size =3. Hidden /fc_size is 8/128
+    energy_prediction_model = EnergyPredictionModel(
+        dynamic_feature_size=5,
+        static_feature_size=3,
+        hidden_size=8,
+        fc_size=128,
+        dataset_values=dataset_values,
     )
+    energy_prediction_model.load_state_dict(torch.load("energy_prediction_model.pth"))
     energy_prediction_model.eval()
     energy_prediction_model.to(device)
 
@@ -171,11 +184,7 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list, list]:
     probs = torch.sigmoid(segmentation_model(image))
     mask = (probs > 0.5).int()
 
-    # Shape is (1, 1, 640, 640)
-    # Convert it to (640, 640)
     mask = mask.squeeze(0).squeeze(0)
-
-    print(mask.shape)
 
     pvtypes = infer_panel_types(image, mask)
     polygons = masks_to_polygons(mask)
@@ -184,27 +193,45 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list, list]:
     return polygons, centers, pvtypes
 
 
-def energy_prediction(df: pd.DataFrame) -> List[Tuple[int, int, int]]:
+def energy_prediction(df: pd.DataFrame) -> List[List[int]]:
     """Predict the energy output for each day based on the given dataframe.
 
     Args:
         df (pd.DataFrame): The dataframe containing the desired features, each row is a day
 
     Returns:
-        List[Tuple[int, int, int]]: The predicted energy output for each day (the gaussian parameters)
+        List[List[int]]: The predicted output for each hour for two days
     """
 
-    # df = normalize_features(df)
+    # Column order
+    # sample dynamics = Bx24x5 and sample static is Bx3
+    dynamic_cols = [
+        "temperature_sequence",
+        "wind_speed_sequence",
+        "dni_sequence",
+        "dhi_sequence",
+        "global_irradiance_sequence",
+    ]
+    static_cols = ["tilt", "azimuth", "module_type"]
 
-    # # Convert the dataframe to a tensor
-    # x = torch.tensor(df.values).float()
+    module_type_map = {
+        "monocrystalline": 0,
+        "polycrystalline": 1,
+    }
 
-    # # Run the model
-    # predictions = energy_prediction_model(x)
+    # Put the dynamic columns in a tensor
+    sample_dynamic = torch.tensor(df[dynamic_cols].values, dtype=torch.float32)
+    # size 2x24x5
+    sample_dynamic = sample_dynamic.view(-1, 24, 5)
 
-    # WIP
-    df = pd.read_csv("dataset_to_train_model.csv")
+    # Put the static columns in a tensor
+    df["module_type"] = df["module_type"].map(module_type_map)
+    sample_static = torch.tensor(df[static_cols].values, dtype=torch.float32)
+    # size 2x3
+    sample_static = sample_static.view(-1, 3)[:2]
 
-    df = df["gaussian_params"].map(lambda x: ", ".join(x.split()))
+    predictions: torch.Tensor = energy_prediction_model.predict(
+        sample_dynamic, sample_static
+    )
 
-    return list(map(lambda x: eval(x), df.iloc[:2].values))
+    return predictions.tolist()
