@@ -68,25 +68,15 @@ class EnergyPredictionModel(nn.Module):
 
     def predict(self, x_dynamic, x_static):
         static_dim = x_static.shape[1] - 1
-        print(static_dim)
-        # Print input shapes for debugging
-        print("input", x_dynamic.shape, x_static.shape)
-        print("dynamic cols value", self.dynamic_cols)
 
         # Ensure x_static and x_dynamic are torch tensors and are of correct type
         x_static = torch.tensor(x_static, dtype=torch.float32)
         x_dynamic = torch.tensor(x_dynamic, dtype=torch.float32)
 
-        # Print shapes after conversion to tensors
-        print("shape x_static, x_dynamic", x_static.shape, x_dynamic.shape)
-
         # Normalize static features
         static_mean = torch.tensor(self.mean[:static_dim] + [0], dtype=torch.float32)
         static_std = torch.tensor(self.std[:static_dim] + [1], dtype=torch.float32)
         x_static_norm = (x_static - static_mean) / static_std
-
-        # Print normalized static features
-        print("x_static_norm", x_static_norm.shape, x_static_norm)
 
         # Normalize dynamic features
         dynamic_mean = torch.tensor(
@@ -96,9 +86,6 @@ class EnergyPredictionModel(nn.Module):
             1, -1
         )
         x_dynamic_norm = (x_dynamic - dynamic_mean) / dynamic_std
-
-        # Print normalized dynamic features
-        print("x_dynamic_norm", x_dynamic_norm.shape, x_dynamic_norm)
 
         # Switch model to evaluation mode
         self.eval()

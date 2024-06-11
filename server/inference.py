@@ -184,11 +184,7 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list, list]:
     probs = torch.sigmoid(segmentation_model(image))
     mask = (probs > 0.5).int()
 
-    # Shape is (1, 1, 640, 640)
-    # Convert it to (640, 640)
     mask = mask.squeeze(0).squeeze(0)
-
-    print(mask.shape)
 
     pvtypes = infer_panel_types(image, mask)
     polygons = masks_to_polygons(mask)
@@ -232,6 +228,8 @@ def energy_prediction(df: pd.DataFrame) -> List[List[int]]:
     sample_static = torch.tensor(df[static_cols].values, dtype=torch.float32)
     sample_static = sample_static.view(-1, 3)[:2]
 
-    predictions: torch.Tensor = energy_prediction_model.predict(sample_dynamic, sample_static)
+    predictions: torch.Tensor = energy_prediction_model.predict(
+        sample_dynamic, sample_static
+    )
 
     return predictions.tolist()
