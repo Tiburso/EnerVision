@@ -4,8 +4,7 @@ import {
 
 import { Marker } from '@/components/marker';
 import { SolarPanel, LatLng } from '@/lib/types';
-import { getEnergyPrediction } from '@/lib/requests';
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 
 interface SolarPanelProps {
     key: number
@@ -53,21 +52,15 @@ const calculateArea = (vertices: LatLng[]): number => {
  * @param solarPanel - The solar panel object.
 */
 function SolarPanelF({ key, solarPanel } : SolarPanelProps) {
-    const [energyPrediction, setEnergyPrediction] = useState<number[]>([]);
     const area = useMemo(() => calculateArea(solarPanel.polygon), [solarPanel.polygon]);
-
-    useEffect(() => {
-        getEnergyPrediction(solarPanel.center.lat, solarPanel.center.lng, solarPanel.type, area)
-            .then(setEnergyPrediction)
-            .catch(console.error);
-    }, [solarPanel, area]);
 
     return (
         <>
             <Marker
                 key={key}
                 center={solarPanel.center}
-                energyPrediction={energyPrediction}
+                type={solarPanel.type}
+                area={area}
             />
 
             <PolygonF

@@ -13,12 +13,6 @@ export interface SolarPanel {
     type: "monocrystalline" | "polycrystalline"
 }
 
-export interface GaussianPrediction {
-    mean: number
-    std: number
-    amp: number
-}
-
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 export { BACKEND_URL }

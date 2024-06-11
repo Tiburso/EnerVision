@@ -5,7 +5,7 @@ import {
     MarkerF,
 } from '@react-google-maps/api';
 
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 
 import { 
     LineChart, 
@@ -13,10 +13,13 @@ import {
  } from 'recharts';
 import { LatLng } from '@/lib/types';
 
+import { getEnergyPrediction } from '@/lib/requests';
+
 interface MarkerProps {
     key: number
     center: LatLng
-    energyPrediction: number[]
+    type: string
+    area: number
 }
 
 interface ChartData {
@@ -27,11 +30,17 @@ interface ChartData {
 /**
  * The LineGraph component is a functional component that renders a line graph of the energy production.
  */
-const Marker: React.FC<MarkerProps> = ({key, center, energyPrediction}) => {
-    // data is a fetch from the backend
+const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
+    const [energyPrediction, setEnergyPrediction] = useState<number[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     
     const now = useMemo(() => new Date(), []);
+
+    useEffect(() => {
+        getEnergyPrediction(center.lat, center.lng, type, area)
+            .then(setEnergyPrediction)
+            .catch(console.error);
+    }, [center, type, area]);
 
     // Have to be in the same format as the data
     const currentHour = useMemo(() => {
