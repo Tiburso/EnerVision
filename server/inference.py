@@ -16,7 +16,7 @@ import pickle
 # from models.architectures import DeepLabModel
 from models.base import BaseModel
 
-from energy_prediction_model import EnergyPredictionModel
+from server.energy_prediction_model import EnergyPredictionModel
 
 segmentation_model = None
 energy_prediction_model = None
@@ -37,13 +37,13 @@ def load_models():
         dataset_values = pickle.load(f)
 
     # Load the energy prediction model
-    # dynamic feature size =5, static feature_size =3. Hidden /fc_size is 8/128 
+    # dynamic feature size =5, static feature_size =3. Hidden /fc_size is 8/128
     energy_prediction_model = EnergyPredictionModel(
-        5,
-        3,
-        8,
-        128,
-        dataset_values=dataset_values
+        dynamic_feature_size=5,
+        static_feature_size=3,
+        hidden_size=8,
+        fc_size=128,
+        dataset_values=dataset_values,
     )
     energy_prediction_model.load_state_dict(torch.load("energy_prediction_model.pth"))
     energy_prediction_model.eval()

@@ -1,12 +1,11 @@
 import torch
 from torch import nn
 import pytorch_lightning as pl
-import pandas as pd
 import numpy as np
 
 
 class EnergyPredictionModel(nn.Module):
-    def _init_(
+    def __init__(
         self,
         dynamic_feature_size,
         static_feature_size,
@@ -15,7 +14,7 @@ class EnergyPredictionModel(nn.Module):
         dropout_rate=0.1,
         dataset_values=None,
     ):
-        super(EnergyPredictionModel, self)._init_()
+        super(EnergyPredictionModel, self).__init__()
         self.dynamic_rnn1 = nn.LSTM(
             input_size=dynamic_feature_size, hidden_size=hidden_size, batch_first=True
         )
@@ -120,7 +119,7 @@ class EnergyPredictionModel(nn.Module):
 
 
 class TrainEnergyPrediction(pl.LightningModule):
-    def _init_(
+    def __init__(
         self,
         dynamic_feature_size,
         static_feature_size,
@@ -130,7 +129,7 @@ class TrainEnergyPrediction(pl.LightningModule):
         loss_type="mse",
         dataset_values=None,
     ):
-        super()._init_()
+        super().__init__()
         self.save_hyperparameters()
         self.model = EnergyPredictionModel(
             dynamic_feature_size,
