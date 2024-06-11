@@ -224,9 +224,6 @@ def rename_columns_and_cache(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(keeps, axis=1)
     df = df.set_index("datetime")
 
-    # Remove the last row (its the day 3)
-    df = df[:-1]
-
     # Save it in a way that can be cached
     df.to_csv(f"weather_data/{date}.csv")
 
@@ -315,7 +312,7 @@ def get_cached_data(today: datetime) -> pd.DataFrame | None:
 
     # Check if the file exists
     if os.path.exists(f"weather_data/{date}.csv"):
-        return pd.read_csv(f"weather_data/{date}.csv", index_col="date")
+        return pd.read_csv(f"weather_data/{date}.csv", index_col="datetime")
 
     # If the file does not exist, return None
     return None

@@ -197,32 +197,41 @@ def segmentation_inference(image: Image.Image) -> Tuple[list, list, list]:
     return polygons, centers, pvtypes
 
 
-def energy_prediction(df: pd.DataFrame) -> List[Tuple[int, int, int]]:
+def energy_prediction(df: pd.DataFrame) -> List[List[int]]:
     """Predict the energy output for each day based on the given dataframe.
 
     Args:
         df (pd.DataFrame): The dataframe containing the desired features, each row is a day
 
     Returns:
-        List[Tuple[int, int, int]]: The predicted energy output for each day (the gaussian parameters)
+        List[List[int]]: The predicted output for each hour for two days
     """
 
     # Column order
     # sample dynamics = Bx24x5 and sample static is Bx3
-    # dynamic_cols = ['temperature_sequence', 'wind_speed_sequence', 'dni_sequence', 'dhi_sequence', 'global_irradiance_sequence']
-    # static_cols = ['tilt', 'azimuth','module_type']
+    dynamic_cols = [
+        "temperature_sequence",
+        "wind_speed_sequence",
+        "dni_sequence",
+        "dhi_sequence",
+        "global_irradiance_sequence",
+    ]
+    static_cols = ["tilt", "azimuth", "module_type"]
 
-    # df = normalize_features(df)
+    module_type_map = {
+        "monocrystalline": 0,
+        "polycrystalline": 1,
+    }
 
-    # # Convert the dataframe to a tensor
-    # x = torch.tensor(df.values).float()
+    # Put the dynamic columns in a tensor
+    sample_dynamic = torch.tensor(df[dynamic_cols].values, dtype=torch.float32)
+    sample_dynamic = sample_dynamic.view(-1, 24, 5)
 
-    # # Run the model
-    # predictions = energy_prediction_model.predict(sample_dynamic, sample_static)
+    # Put the static columns in a tensor
+    df["module_type"] = df["module_type"].map(module_type_map)
+    sample_static = torch.tensor(df[static_cols].values, dtype=torch.float32)
+    sample_static = sample_static.view(-1, 3)[:2]
 
-    # WIP
-    df = pd.read_csv("dataset_to_train_model.csv")
+    predictions: torch.Tensor = energy_prediction_model.predict(sample_dynamic, sample_static)
 
-    df = df["gaussian_params"].map(lambda x: ", ".join(x.split()))
-
-    return list(map(lambda x: eval(x), df.iloc[:2].values))
+    return predictions.tolist()
