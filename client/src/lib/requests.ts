@@ -52,7 +52,7 @@ export async function getEnergyPrediction(lat: number, lng: number, type: string
 
         // predictions scale linearly with the area of the solar panel
         return predictions
-            .map((value) => Math.min(0, value))
+            .map((value) => Math.max(0, value))
             .map((value) => value * area);
 
     } catch (error) {

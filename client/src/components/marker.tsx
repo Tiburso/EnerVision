@@ -32,6 +32,7 @@ interface ChartData {
  */
 const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
     const [chartData, setChartData] = useState<ChartData[]>([]);
+    const [formattedHour, setFormattedHour] = useState<string>('');
     const [isOpen, setIsOpen] = useState(false);
     
 
@@ -40,7 +41,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
 
         const hour = now.getHours();
         const date = now.toISOString().split('T')[0];
-        // const formatedHour = `${date} ${hour + 1}:00`;
+        const formatedHour = `${date} ${hour + 1}:00`;
 
         const prediction = await getEnergyPrediction(center.lat, center.lng, type, area);
         
@@ -62,6 +63,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
             return { name: `${date} ${index - 24 + 1}:00`, energy };
         });
 
+        setFormattedHour(formatedHour);
         setChartData(data);
         setIsOpen(!isOpen);
     }, [center, type, area, isOpen]);
@@ -96,7 +98,7 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
                         />
                         {/* Reference Line with the current hour make it a very light red dashd */}
                         <ReferenceLine 
-                            // x={currentHour} 
+                            x={formattedHour} 
                             stroke='red' 
                             opacity={80} 
                             strokeDasharray="1 1"

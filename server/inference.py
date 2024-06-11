@@ -230,9 +230,6 @@ def energy_prediction(df: pd.DataFrame) -> List[List[int]]:
     # size 2x3
     sample_static = sample_static.view(-1, 3)[:2]
 
-    print(sample_dynamic.shape)
-    print(sample_static.shape)
-
     predictions: torch.Tensor = energy_prediction_model.predict(
         sample_dynamic, sample_static
     )
