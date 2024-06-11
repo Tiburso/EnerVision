@@ -7,49 +7,63 @@ from scipy.optimize import curve_fit
 from scipy.integrate import trapz
 
 
+"""
+This script simulates the daily energy output of a PV system for a given location and weather data.
+The script generates random configurations for a number of PV panels and simulates the daily energy output for each configuration.
+The daily energy output is then plotted for each panel configuration.
+The script also prepares the data for the deeplearning by storing the daily energy data and storing the parameters in a DataFrame.
+The prepared data is then saved to a CSV file for further analysis.
+"""
+
 def load_weather_data(file_path):
     """ Load historical weather data from a CSV file. """
     return pd.read_csv(file_path)
 
 def generate_random_panels(num_panels):
     """ Generate random configurations for a number of PV panels. """
-    #panel_types = ['Canadian_Solar_CS5P_220M___2009_']
-    tilts = [randint(5, 40) for _ in range(num_panels)]  # Tilt angles between 5 and 40 degrees
-    azimuths = [randint(90, 270) for _ in range(num_panels)]  # Southward orientations between East and West
+     # Tilt angles between 5 and 40 degrees
+    tilts = [randint(5, 40) for _ in range(num_panels)] 
+
+    #  Southward orientations between East and West
+    azimuths = [randint(90, 270) for _ in range(num_panels)] 
+
+    # which module types to include
     module_types = ['monocrystalline', 'polycrystalline', 'thin-film', 'bifacial']
-    return [{'type': choice(panel_types), 'tilt': tilt, 'azimuth': azimuth, 'module_type': choice(module_types)} 
+    return [{'tilt': tilt, 'azimuth': azimuth, 'module_type': choice(module_types)} 
             for tilt, azimuth in zip(tilts, azimuths)]
 
 def get_pv_system(panel):
     """ Retrieves and configures a PVSystem object based on the panel type and parameters. """
-    #module = pvsystem.retrieve_sam('SandiaMod')[panel['type']]
    
+    # set dersired module specs
     module_specs = {
     'monocrystalline': {'pdc0': 220, 'gamma_pdc': -0.0045},
     'polycrystalline': {'pdc0': 200, 'gamma_pdc': -0.005},
     'thin-film': {'pdc0': 180, 'gamma_pdc': -0.002},
     'bifacial': {'pdc0': 210, 'gamma_pdc': -0.004}
     } 
-    
-    module_parameters = module_specs[panel['module_type']]#{'pdc0': 200, 'gamma_pdc': -0.004}  
-    inverter_pdc0 = module_parameters['pdc0'] # Assuming an array of 10 modules
-        # Choose inverter efficiency based on pdc0 range
-    if inverter_pdc0 > 200:
-        eta_inv_nom = 0.98
-    else:
-        eta_inv_nom = 0.96
+
+    # retrieve module parameters
+    module_parameters = module_specs[panel['module_type']]
+
+    # set temperature model parameters
+    inverter_pdc0 = module_parameters['pdc0'] 
+    eta_inv_nom = 0.95
     inverter_parameters = {
         'pdc0': inverter_pdc0,
         'eta_inv_nom': eta_inv_nom
     }
+
+    # set static module parameters
     mount = pvsystem.FixedMount(surface_tilt=panel['tilt'], surface_azimuth=panel['azimuth'])
 
-    #inverter_parameters = {'pdc0': 5000, 'eta_inv_nom': 0.96}
+    # craete array
     array_one = (pvsystem.Array( mount=mount, 
                                 module_parameters=module_parameters,
                                 temperature_model_parameters= panel['temperature']
-                                #module_type = 'monocrystalline'
                                 ))
+    
+    # return the created system
     return pvsystem.PVSystem(name = 'system1',
                             arrays =array_one,
                             inverter =inverter_parameters,                           
@@ -59,7 +73,11 @@ def get_pv_system(panel):
 
 def simulate_pv_output(system, weather_data, location):
     """ Simulate daily PV output for all arrays in the system. """
+
+    # Calculate solar position
     solar_position = location.get_solarposition(weather_data.index)
+
+    # Extract weather data
     temp_air = weather_data['temp_air']
     wind_speed = weather_data['wind_speed']
     
@@ -68,20 +86,22 @@ def simulate_pv_output(system, weather_data, location):
 
     # Simulate output for each array in the system
     for array in system.arrays:
-        #print(array)
-        #print('____________________')
-        # Calculate POA irradiance
-        aoi = irradiance.aoi(array.mount.surface_tilt, array.mount.surface_azimuth, solar_position['apparent_zenith'], solar_position['azimuth'])
+        
+        # Calculate irradiance
         poa_irrad = irradiance.get_total_irradiance(array.mount.surface_tilt, array.mount.surface_azimuth,
                                                     solar_position['apparent_zenith'], solar_position['azimuth'],
                                                     weather_data['dni'], weather_data['temp_air'], weather_data['dhi'])
+        
         # Calculate cell temperature
         cell_temperature = temperature.sapm_cell(poa_irrad['poa_global'], temp_air, wind_speed,
                                                   **array.temperature_model_parameters)
+        
+        # Create a new PVSystem object with a single array (workaround for unknown error the system was already defined but errors if inserted directly)
         single_array_system = pvsystem.PVSystem(
                              name=system.name,
                             arrays=[system.arrays[0]],
                             inverter=system.inverter,)
+        
         # Calculate DC output for the current array
         dc_output = single_array_system.pvwatts_dc(poa_irrad['poa_global'], cell_temperature)
         
@@ -93,6 +113,8 @@ def simulate_pv_output(system, weather_data, location):
     
     return output_data
 
+"""
+redundant gaussian function
 def fit_gaussian_to_daily_data(daily_data):
     x_numeric = np.arange(len(daily_data))
     popt, _ = curve_fit(gaussian, x_numeric, daily_data, p0=[max(daily_data), np.argmax(daily_data), 1])
@@ -100,18 +122,27 @@ def fit_gaussian_to_daily_data(daily_data):
 
 def gaussian(x, a, b, c):
     return a * np.exp(-((x - b) ** 2) / (2 * c ** 2))
+"""
 
 def plot_energy_outputs(data, energy_outputs, days_to_plot=3):
+    """ Plot the energy outputs for each panel configuration. """
+
+    # Create a new figure
     plt.figure(figsize=(12, 8))
     
+    # Convert the index to a DatetimeIndex if it is not already
     if not isinstance(energy_outputs.index, pd.DatetimeIndex):
         energy_outputs.index = pd.to_datetime(energy_outputs.index)
 
+    # Define colors for the plots
     colors = ['red', 'blue', 'green'] 
     colors2 = ['orange', 'purple', 'yellow']
 
+    # Iterate over each panel configuration
     num_panels = len(energy_outputs.columns) // 4
     areas = []
+
+    # Iterate over each panel configuration
     for i in range(num_panels):
         panel_energy_output = energy_outputs.iloc[:, i*4:(i+1)*4]
 
@@ -120,24 +151,22 @@ def plot_energy_outputs(data, energy_outputs, days_to_plot=3):
             end_idx = (day + 1) * 24
             daily_data = panel_energy_output.iloc[start_idx:end_idx].mean(axis=1)
 
-            popt = fit_gaussian_to_daily_data(daily_data)
-            if popt is not None:
-                x_dense = np.linspace(0, 23, 500)  
-                gaussian_curve = gaussian(x_dense, *popt)
-
-                # Calculate the area under the Gaussian curve
-                area_gaussian = trapz(gaussian_curve, dx=x_dense[1]-x_dense[0])
-
-                # Calculate the area under the original daily mean data
-                area_original = trapz(daily_data, dx=1) 
-
-                # Calculate the difference in areas
-                area_difference =  area_gaussian/ area_original
-                areas.append(area_difference)
-                x_dense = np.linspace(0, 23, 500) 
-                x_plot = pd.date_range(start=energy_outputs.index[start_idx], periods=24, freq='H')
-                x_plot_dense = pd.date_range(start=x_plot[0], end=x_plot[-1], periods=500)  
-                plt.plot(x_plot_dense, gaussian(x_dense, *popt), color=colors2[i], label=f'Gaussian Panel {i+1}, {area_difference:.2f} Wh', linewidth=2)
+            """functions to plot the gaussians and calculate the area under the curve disabled"""
+            #popt = fit_gaussian_to_daily_data(daily_data)
+            #if popt is not None:
+            #x_dense = np.linspace(0, 23, 500)  
+            #gaussian_curve = gaussian(x_dense, *popt)
+            # Calculate the area under the Gaussian curve
+            #area_gaussian = trapz(gaussian_curve, dx=x_dense[1]-x_dense[0])
+            # Calculate the area under the original daily mean data
+            #area_original = trapz(daily_data, dx=1) 
+            # Calculate the difference in areas
+            #area_difference =  area_gaussian/ area_original
+            #areas.append(area_difference)
+            #x_dense = np.linspace(0, 23, 500) 
+            #x_plot = pd.date_range(start=energy_outputs.index[start_idx], periods=24, freq='H')
+            #x_plot_dense = pd.date_range(start=x_plot[0], end=x_plot[-1], periods=500)  
+            #plt.plot(x_plot_dense, gaussian(x_dense, *popt), color=colors2[i], label=f'Gaussian Panel {i+1}, {area_difference:.2f} Wh', linewidth=2)
 
 
             # Plot the original daily mean energy data
@@ -150,7 +179,8 @@ def plot_energy_outputs(data, energy_outputs, days_to_plot=3):
             end_time = energy_outputs.index[min(len(energy_outputs.index), days_to_plot*24) - 1]
             plt.plot(data[start_time:end_time].index, data[start_time:end_time]['W.mean_value'], 
                 color='black', label='W.mean_value', linewidth=2, linestyle='-.')
-    print(np.mean(np.array(areas)))
+   
+    # Plot the legend, title, and labels    
     plt.title('Predicted Energy Production Over Time')
     plt.xlabel('Time')
     plt.ylabel('Energy Output (Wh)')
@@ -160,6 +190,9 @@ def plot_energy_outputs(data, energy_outputs, days_to_plot=3):
     plt.show()
 
 def prepare_data_for_model(energy_outputs, weather_data, panels):
+    """ Prepare the data for the deep learning model. """
+
+    # Initialize an empty list to store the model data
     model_data = []
 
     # Iterate over each panel configuration
@@ -173,35 +206,33 @@ def prepare_data_for_model(energy_outputs, weather_data, panels):
 
             # Extract daily weather data and energy outputs
             daily_weather = weather_data.iloc[start_idx:end_idx]
-            daily_data = panel_energy_output.iloc[start_idx:end_idx].mean(axis=1)
+            d#aily_data = panel_energy_output.iloc[start_idx:end_idx].mean(axis=1)
 
             # Fit Gaussian to daily energy data
-            popt = fit_gaussian_to_daily_data(daily_data)
+            #popt = fit_gaussian_to_daily_data(daily_data)
 
-            if popt is not None:
-                row = {
-                    'panel_type': panel['type'],
-                    'tilt': panel['tilt'],
-                    'azimuth': panel['azimuth'],
-                    'module_type': panel['module_type'],
-                    # Store sequences as lists in the DataFrame cell
-                    'temperature_sequence': daily_weather['temp_air'].tolist(),
-                    'wind_speed_sequence': daily_weather['wind_speed'].tolist(),
-                    'dni_sequence': daily_weather['dni'].tolist(),
-                    'dhi_sequence': daily_weather['dhi'].tolist(),
-                    'global_irradiance_sequence': daily_weather['temp_air'].tolist(),
-                    'gaussian': popt.tolist()
-                }
-                model_data.append(row)
+            #if popt is not None:
+            row = {
+                'panel_type': panel['type'],
+                'tilt': panel['tilt'],
+                'azimuth': panel['azimuth'],
+                'module_type': panel['module_type'],
+                # Store sequences as lists in the DataFrame cell
+                'temperature_sequence': daily_weather['temp_air'].tolist(),
+                'wind_speed_sequence': daily_weather['wind_speed'].tolist(),
+                'dni_sequence': daily_weather['dni'].tolist(),
+                'dhi_sequence': daily_weather['dhi'].tolist(),
+                'global_irradiance_sequence': daily_weather['temp_air'].tolist(),
+                #'gaussian': popt.tolist()
+            }
+            model_data.append(row)
 
     return pd.DataFrame(model_data)
 
 
 if __name__ == "__main__":
     # Load weather data
-    #weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
     weather_data = load_weather_data('energy_prediction/energy_data/historical_weather.csv')
-    #weather_data.index = pd.to_datetime(weather_data['date_time'])
     weather_data.index = pd.to_datetime(weather_data['timestamp'], utc=True)
     
     # Define location
@@ -215,6 +246,9 @@ if __name__ == "__main__":
 
     # Simulate PV output for all panels
     results = []
+
+    # Iterate over each panel configuration
+    # Store the daily energy output in the energy_outputs DataFrame
     for i, panel in enumerate(panels):
         system = get_pv_system(panel)
         daily_output = simulate_pv_output(system, weather_data, site_location)
@@ -230,6 +264,8 @@ if __name__ == "__main__":
     
     # Plot energy outputs
     plot_energy_outputs(weather_data, energy_outputs)
+
     # Assume weather_data and panels are already loaded and processed
+    # Prepare the data for the deep learning model
     prepared_data = prepare_data_for_model(energy_outputs, weather_data, panels)
     prepared_data.to_csv('energy_prediction/energy_data/model_input.csv', index=False)
