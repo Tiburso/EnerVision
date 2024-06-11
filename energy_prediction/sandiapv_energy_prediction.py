@@ -204,7 +204,7 @@ if __name__ == "__main__":
     #weather_data.index = pd.to_datetime(weather_data['date_time'])
     weather_data.index = pd.to_datetime(weather_data['timestamp'], utc=True)
     
-    # Define location (example: Berlin, Germany)
+    # Define location
     site_location = location.Location(latitude=52.52, longitude=13.4050, altitude=34, tz='Europe/Amsterdam')
 
     # Generate random panels
