@@ -34,6 +34,15 @@ export async function getSolarPanel(lat: number, lng: number): Promise<SolarPane
     }
 }
 
+/**
+ * Function sends a request to the backend service to get the energy prediction for a solar panel.
+ * 
+ * @param lat - The latitude of the center of the solar panel.
+ * @param lng - The longitude of the center of the solar panel.
+ * @param type - The type of the solar panel.
+ * @param area - The area of the solar panel.
+ * @returns - A promise of the energy prediction ( a 48 sized array with predictions for each hour)
+*/
 export async function getEnergyPrediction(lat: number, lng: number, type: string, area: number): Promise<number[]> {
     const center = `${lat},${lng}`;
     const url = new URL(`${BACKEND_URL}/predictions`);
@@ -51,6 +60,7 @@ export async function getEnergyPrediction(lat: number, lng: number, type: string
         const predictions = [...data["today"], ...data["tomorrow"]];
 
         // predictions scale linearly with the area of the solar panel
+        // also have to filter out the negative values because they are not possible
         return predictions
             .map((value) => Math.max(0, value))
             .map((value) => value * area);
