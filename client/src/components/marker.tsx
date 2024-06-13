@@ -37,6 +37,8 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
     
 
     const fetchEnergyPrediction = useCallback(async () => {
+        setIsOpen(!isOpen);
+
         const now = new Date()
 
         const hour = now.getHours();
@@ -65,7 +67,6 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
 
         setFormattedHour(formatedHour);
         setChartData(data);
-        setIsOpen(!isOpen);
     }, [center, type, area, isOpen]);
 
     return (
