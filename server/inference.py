@@ -23,6 +23,10 @@ energy_prediction_model = None
 
 
 def load_models():
+    """Load the machine learning models - Both these models need to be previously trained 
+    and saved in the same directory as this script.
+    """
+    
     global segmentation_model, energy_prediction_model
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

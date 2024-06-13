@@ -11,6 +11,14 @@ interface SolarPanelProps {
     solarPanel: SolarPanel
 }
 
+
+/**
+ * Calculate the area of a polygon given its vertices using the shoelace formula.
+ * Converts first from latitude and longitude to cartesian coordinates.
+ * 
+ * @param vertices - The vertices of the polygon.
+ * @returns The area of the polygon.
+ */
 const calculateArea = (vertices: LatLng[]): number => {
     const earthRadiusSquared = 6371009 // Earth's radius in meters
     

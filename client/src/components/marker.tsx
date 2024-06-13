@@ -28,7 +28,11 @@ interface ChartData {
 }
 
 /**
- * The LineGraph component is a functional component that renders a line graph of the energy production.
+ * 
+ * @param key The key of the marker for react
+ * @param center The center of the solar panel that represents the marker
+ * @param type The type of the solar panel
+ * @param area The area of the solar panel
  */
 const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
     const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -36,9 +40,14 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
     const [isOpen, setIsOpen] = useState(false);
     
 
+    // Fetch the energy prediction for the solar panel
+    // This callback will be called when the marker is clicked
     const fetchEnergyPrediction = useCallback(async () => {
+        
+        // Set the modal open because it was lagging the first time
         setIsOpen(!isOpen);
 
+        // Get the current date to set the Xaxis of the graph
         const now = new Date()
 
         const hour = now.getHours();
@@ -47,6 +56,8 @@ const Marker: React.FC<MarkerProps> = ({key, center, type, area}) => {
 
         const prediction = await getEnergyPrediction(center.lat, center.lng, type, area);
         
+        // Map each of the indexes to a specific day
+        // (today or tomorrow)
         const data = prediction.map((energy, index) => {
             // If the index is less than 24, then it is today
             if (index < 24) {
