@@ -31,4 +31,4 @@ wandb login
 
 # In the future create three consecutive train scripts for each dataset
 # python train_scripts/solar_dk_train.py --best_model 251115
-python train_scripts/nl_dataset_train.py --best_model 123456
+python train_scripts/train.py --best_model 123456

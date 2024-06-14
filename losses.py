@@ -4,11 +4,11 @@ from segmentation_models_pytorch.losses import (
     DiceLoss,
     JaccardLoss,
     FocalLoss,
-    SoftCrossEntropyLoss
 )
 
 
 class LossCombined(nn.Module):
+    """Class for the loss function that combines the jacard and binary cross entropy loss."""
     def __init__(self):
         super().__init__()
         self.jaccard_loss = LossJaccard()
@@ -21,6 +21,7 @@ class LossCombined(nn.Module):
 
 
 class LossCE(nn.Module):
+    """Class for the binary cross entropy loss function."""
     def __init__(self):
         super().__init__()
         self.loss = nn.BCEWithLogitsLoss()
@@ -31,6 +32,7 @@ class LossCE(nn.Module):
 
 
 class LossDice(nn.Module):
+    """Class for the dice loss function."""
     def __init__(self):
         super().__init__()
         self.loss = DiceLoss(mode="binary", from_logits=True)
@@ -41,6 +43,7 @@ class LossDice(nn.Module):
 
 
 class LossJaccard(nn.Module):
+    """Class for the jacard loss function."""
     def __init__(self):
         super().__init__()
         self.loss = JaccardLoss(mode="binary", from_logits=True)
@@ -59,6 +62,7 @@ class LossJaccard(nn.Module):
     
 
 class LossFocal(nn.Module):
+    """Class for the focal loss function."""
     def __init__(self):
         super().__init__()
         self.loss = FocalLoss(mode="binary", alpha=0.25)
