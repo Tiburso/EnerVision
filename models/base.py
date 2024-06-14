@@ -4,14 +4,25 @@ from torchmetrics.classification import BinaryJaccardIndex, Dice, BinaryPrecisio
 
 
 class BaseModel(pl.LightningModule):
+    """
+    Pytorch Lightning Base model class
+
+    Args:
+        model (torch.nn.Module): Model to be trained on.
+        loss_fn (torch.nn.Module): Loss function to be used.
+        optimizer (torch.optim.Optimizer: Optimizer to be used.
+        scheduler (torch.optim.lr_scheduler, optional): _Learning rate scheduler to be used. Defaults to None.
+        threshold (float, optional): Threshold for binary classification. Defaults to 0.5.
+        metrics (list, optional): Metrics to be logged. Defaults to None.
+    """
     def __init__(
-        self, model, loss_fn, optimizer, scheduler=None, treshold=0.5, metrics=None):
+        self, model, loss_fn, optimizer, scheduler=None, threshold=0.5, metrics=None):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self.treshold = treshold
+        self.treshold = threshold
         self.binary_jaccard_index = BinaryJaccardIndex()
         self.dice = Dice(multiclass=False)
         self.precision = BinaryPrecision()
@@ -30,7 +41,9 @@ class BaseModel(pl.LightningModule):
         return self.loss_fn(y_hat, y)
     
     def calculate_metrics(self, y_hat, y, prefix):
+        # Calculate probabilities
         probs = torch.sigmoid(y_hat)
+        # Classify pixel to 0 or 1
         y_hat = (probs > self.treshold).int()
         y = y.int()
 
@@ -38,6 +51,7 @@ class BaseModel(pl.LightningModule):
         has_actual = torch.any(y == 1)
 
         metrics = {}
+        # Only calculate metrics that need positives when there are positives predicted or in ground truth
         if has_predicted or has_actual:
             metrics.update({
                 f"{prefix}_dice": self.dice(y_hat, y),

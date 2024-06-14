@@ -6,7 +6,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from models.base import BaseModel
 from dataloaders.nl_dataset import NLSegmentationDataset
-from dataloaders.germany_dataset import GermanyDataset
+from dataloaders.france_dataset import FranceDataset
 from pytorch_lightning.loggers import WandbLogger
 import wandb
 from models.architectures.deep_lab import DeepLabModel
@@ -21,10 +21,10 @@ def main(best_model="last"):
         project="Training model",
         entity="5ARIP",
         config={
-            "learning_rate": 1e-5,
-            "architecture": "DeepLabV3+",
-            "dataset": "NL Segmentation + Germany",
-        },
+        "learning_rate": 1e-5,
+        "architecture": "DeepLabV3+",
+        "dataset": "NL Segmentation + France",
+        }
     )
 
     # LOAD NL DATASET -------------------------------------------------
@@ -36,27 +36,25 @@ def main(best_model="last"):
     nl_validation_dataset = NLSegmentationDataset(image_dir=nl_validation_folder)
     nl_test_dataset = NLSegmentationDataset(image_dir=nl_test_folder)
 
-    # LOAD GERMANY DATASET --------------------------------------------
-    germany_folder = "data/bdappv"
-    germany_dataset = GermanyDataset(germany_folder)
+    # LOAD FRANCE DATASET --------------------------------------------
+    france_folder = "data/bdappv"
+    france_dataset = FranceDataset(france_folder)
 
     # Create a train, validation and test set
     train_indices, test_indices = train_test_split(
-        range(len(germany_dataset)), test_size=0.2, random_state=0
+        range(len(france_dataset)), test_size=0.2, random_state=0
     )
     train_indices, validation_indices = train_test_split(
         train_indices, test_size=0.2, random_state=0
     )
-    germany_train_dataset = Data.Subset(germany_dataset, train_indices)
-    germany_validation_dataset = Data.Subset(germany_dataset, validation_indices)
-    germany_test_dataset = Data.Subset(germany_dataset, test_indices)
+    france_train_dataset = Data.Subset(france_dataset, train_indices)
+    france_validation_dataset = Data.Subset(france_dataset, validation_indices)
+    france_test_dataset = Data.Subset(france_dataset, test_indices)
 
     # CONCAT NL AND GERMANY DATASET -----------------------------------
-    train_dataset = Data.ConcatDataset([germany_train_dataset, nl_train_dataset])
-    validation_dataset = Data.ConcatDataset(
-        [germany_validation_dataset, nl_validation_dataset]
-    )
-    test_dataset = Data.ConcatDataset([germany_test_dataset, nl_test_dataset])
+    train_dataset = Data.ConcatDataset([france_train_dataset, nl_train_dataset])
+    validation_dataset = Data.ConcatDataset([france_validation_dataset, nl_validation_dataset])
+    test_dataset = Data.ConcatDataset([france_test_dataset, nl_test_dataset])
 
     # CREATE THE DATALOADERS
     train_loader = DataLoader(

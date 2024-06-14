@@ -9,6 +9,13 @@ class SolarDKDataset(Dataset):
     """
     Dataset class for loading and processing images and their segmentation masks from the 
     SolarDK UV panel segmentation dataset.
+
+    Args:
+        image_dir (str): The directory to the images and annotation file.
+        transforms (str, optional): Transformations applied to the images and masks. Default is None.
+        size (list): Size for images and masks as [width, height]. Default is [640, 640].
+        mean (list): Mean values for image normalization. Default is [0.485, 0.456, 0.406].
+        std (list): Standard deviation values for image normalization. Default is [0.229, 0.224, 0.225].
     """
     def __init__(self, image_dir, transforms=None, size=[640, 640], mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
         # Set the image directory, image transformations, and mask transformations
@@ -34,6 +41,12 @@ class SolarDKDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, index):
+        """
+        Gets the images and the corresponding segmentation mask at specified index.
+
+        Returns:
+            tuple: A tuple containing the image and the corresponding segmentation mask.
+        """
         prefix = "positive" if self.images[index] in self.positive_files else "negative"
         image_path = os.path.join(self.image_dir, prefix, self.images[index])
         image = Image.open(image_path).convert("RGB")
@@ -46,15 +59,18 @@ class SolarDKDataset(Dataset):
         else:
             mask = Image.new("L", image.size)
 
+        # Preprocess image
         image = F.to_image(image)
         image = F.to_dtype(image, dtype=torch.float32, scale=True)
         image = F.resize(image, size=self.size)
         image = F.normalize(image, mean=self.mean, std=self.std)
 
+        # Preprocess mask
         mask = F.to_image(mask)
         mask = F.to_dtype(mask, dtype=torch.int, scale=False)
         mask = F.resize(mask, size=self.size, interpolation=F.InterpolationMode.NEAREST)
 
+        # Additional transformation
         if self.transforms:
             image, mask = self.transforms(image, mask)
     

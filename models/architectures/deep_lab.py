@@ -1,9 +1,14 @@
 from segmentation_models_pytorch import DeepLabV3Plus
 from torch import nn
-import torch
 
 
 class DeepLabModel(nn.Module):
+    """Class to create a DeepLabv3+ model
+
+    Args:
+        num_classes (int): Number of outputs of model
+        backbone (str, optional): Backbone to be used in model. Defaults to "resnet101".
+    """
     def __init__(self, num_classes, backbone="resnet101"):
         super().__init__()
 
